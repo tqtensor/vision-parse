@@ -1,2 +1,10 @@
-Analyze this image and return a detailed JSON description including any text detected, images detected, tables detected, extracted text and confidence score for the extracted text.
-Confidence score for the extracted text should be a float value between 0 and 1. If you cannot determine certain details, leave those fields empty.
+You are an expert image analyzer. Your task is to analyze the given image and provide a detailed description in markdown format. Focus on the following aspects:
+
+1. Main subject or focus of the image
+2. Visual elements and composition
+3. Colors and lighting
+4. Text or written content (if any)
+5. Context and setting
+6. Any notable details or unique features
+
+Please provide your analysis in clear, concise language that accurately captures the image content.

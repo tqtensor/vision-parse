@@ -9,7 +9,6 @@ from pydantic import BaseModel
 import ollama
 import sys
 from jinja2 import Template
-import importlib.resources as pkg_resources
 
 
 class PDFPageConfig(BaseModel):
@@ -88,11 +87,13 @@ class VisionParser:
         self.top_p = top_p
 
         try:
-            prompt_text = (
-                pkg_resources.files("vision_parser")
-                .joinpath("md_prompt.j2")
-                .read_text()
-            )
+            # For Python 3.8+ compatibility
+            try:
+                from importlib.resources import files  # Python 3.9+
+            except ImportError:
+                from importlib_resources import files  # Python 3.8
+
+            prompt_text = files("vision_parse").joinpath("md_prompt.j2").read_text()
             self.md_prompt = Template(prompt_text)
         except Exception as e:
             self.logger.critical("Markdown prompt file for vision LLM not found")
@@ -104,9 +105,7 @@ class VisionParser:
 
         try:
             self.image_analysis_prompt = (
-                pkg_resources.files("vision_parser")
-                .joinpath("img_analysis.prompt")
-                .read_text()
+                files("vision_parse").joinpath("img_analysis.prompt").read_text()
             )
         except Exception as e:
             self.logger.critical("Image Analysis prompt file not found")
