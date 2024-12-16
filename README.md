@@ -61,7 +61,7 @@ pip install vision-parse
    ```
 
 
-## 💡 Usage
+## ⌛️ Usage
 
 ### Basic Example
 
