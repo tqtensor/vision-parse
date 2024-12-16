@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Author: Arun Brahma](https://img.shields.io/badge/Author-Arun%20Brahma-purple)](https://github.com/iamarunbrahma)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/vision-parse)](https://pypi.org/project/vision-parse)
+[![PyPI version](https://img.shields.io/pypi/v/vision-parse.svg)](https://pypi.org/project/vision-parse/)
 
 > 🚀 Transform PDF documents into beautifully formatted markdown using state-of-the-art Vision Language Models - all with just a few lines of code!
 
