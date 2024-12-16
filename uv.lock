@@ -718,7 +718,7 @@ wheels = [
 ]
 
 [[package]]
-name = "vision-parser"
+name = "vision-parse"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

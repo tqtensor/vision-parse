@@ -34,8 +34,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/iamarunbrahma/vision-parser"
-Repository = "https://github.com/iamarunbrahma/vision-parser.git"
+Homepage = "https://github.com/iamarunbrahma/vision-parse"
+Repository = "https://github.com/iamarunbrahma/vision-parse.git"
 
 [project.optional-dependencies]
 dev = [
