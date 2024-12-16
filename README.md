@@ -118,8 +118,8 @@ markdown_pages = parser.convert_pdf(pdf_path)
 1. **Clone and Setup**:
    ```bash
    # Clone the repository
-   git clone https://github.com/iamarunbrahma/vision-parser.git
-   cd vision-parser
+   git clone https://github.com/iamarunbrahma/vision-parse.git
+   cd vision-parse
    ```
 
 2. **Install Dependencies**:
