@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 import fitz
-from multimodal_parser.markdown import PDFPageConfig, MarkdownParser
+from vision_parse.parser import PDFPageConfig, VisionParser
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def page_config():
 
 @pytest.fixture
 def markdown_parser(page_config):
-    return MarkdownParser(
+    return VisionParser(
         model_name="llama3.2-vision:11b",
         temperature=0.7,
         top_p=0.7,

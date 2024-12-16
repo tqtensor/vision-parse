@@ -49,11 +49,11 @@ class LoggerConfig:
         return logger
 
 
-class MarkdownParserError(Exception):
+class VisionParserError(Exception):
     """Custom exception for handling Markdown Parser errors."""
 
     def __init__(self, message: str, error_code: int = None, source: str = None):
-        """Initialize the MarkdownParserError."""
+        """Initialize the VisionParserError."""
         self.message = message
         self.error_code = error_code
         self.source = source
@@ -69,7 +69,7 @@ class MarkdownParserError(Exception):
         return " | ".join(exception_lst)
 
 
-class MarkdownParser:
+class VisionParser:
     """Convert PDF pages to base64-encoded images and then extract text from the images in markdown format."""
 
     def __init__(
@@ -89,31 +89,31 @@ class MarkdownParser:
 
         try:
             prompt_text = (
-                pkg_resources.files("multimodal_parser")
+                pkg_resources.files("vision_parser")
                 .joinpath("md_prompt.j2")
                 .read_text()
             )
             self.md_prompt = Template(prompt_text)
         except Exception as e:
-            self.logger.critical("Markdown prompt file for Multimodal LLM not found")
-            raise MarkdownParserError(
-                message=f"Markdown prompt file for Multimodal LLM not found: {str(e)}",
+            self.logger.critical("Markdown prompt file for vision LLM not found")
+            raise VisionParserError(
+                message=f"Markdown prompt file for vision LLM not found: {str(e)}",
                 error_code=2,
-                source="__init__.py in MarkdownParser class",
+                source="__init__.py in VisionParser class",
             )
 
         try:
             self.image_analysis_prompt = (
-                pkg_resources.files("multimodal_parser")
+                pkg_resources.files("vision_parser")
                 .joinpath("img_analysis.prompt")
                 .read_text()
             )
         except Exception as e:
             self.logger.critical("Image Analysis prompt file not found")
-            raise MarkdownParserError(
+            raise VisionParserError(
                 message=f"Image Analysis prompt file not found: {str(e)}",
                 error_code=2,
-                source="__init__.py in MarkdownParser class",
+                source="__init__.py in VisionParser class",
             )
 
         try:
@@ -124,13 +124,13 @@ class MarkdownParser:
                 ollama.pull(self.model_name)
         except Exception as e:
             self.logger.error(f"Model {self.model_name}: {str(e)}")
-            raise MarkdownParserError(
+            raise VisionParserError(
                 message=f"Model {self.model_name}: {str(e)}",
-                source="__init__.py in MarkdownParser class",
+                source="__init__.py in VisionParser class",
             )
 
-    def _multimodal_llm(self, base64_encoded: str, prompt: str) -> str:
-        """Analyze scanned image through multimodal LLM."""
+    def _vision_llm(self, base64_encoded: str, prompt: str) -> str:
+        """Analyze scanned image through Vision LLM."""
         try:
             response = ollama.chat(
                 model=self.model_name,
@@ -148,14 +148,14 @@ class MarkdownParser:
             )
             return response["message"]["content"]
         except Exception as e:
-            self.logger.error(f"Multimodal LLM processing failed: {str(e)}")
-            raise MarkdownParserError(
-                message=f"Multimodal LLM processing failed: {str(e)}",
-                source="_multimodal_llm in MarkdownParser class",
+            self.logger.error(f"Vision LLM processing failed: {str(e)}")
+            raise VisionParserError(
+                message=f"Vision LLM processing failed: {str(e)}",
+                source="_vision_llm in VisionParser class",
             )
 
     def _structured_llm(self, base64_encoded: str) -> str:
-        """Generate structured data from image through multimodal LLM."""
+        """Generate structured data from image through Vision LLM."""
         try:
             response = ollama.chat(
                 model=self.model_name,
@@ -174,10 +174,10 @@ class MarkdownParser:
             )
             return ImageAnalysis.model_validate_json(response["message"]["content"])
         except Exception as e:
-            self.logger.error(f"Multimodal LLM processing failed: {str(e)}")
-            raise MarkdownParserError(
-                message=f"Multimodal LLM processing failed: {str(e)}",
-                source="_structured_llm in MarkdownParser class",
+            self.logger.error(f"Vision LLM processing failed: {str(e)}")
+            raise VisionParserError(
+                message=f"Vision LLM processing failed: {str(e)}",
+                source="_structured_llm in VisionParser class",
             )
 
     def _calculate_matrix(self, page: fitz.Page) -> fitz.Matrix:
@@ -213,7 +213,7 @@ class MarkdownParser:
                 images_detected=analysis_text.images_detected,
                 confidence_score_text=float(analysis_text.confidence_score_text),
             )
-            text = self._multimodal_llm(base64_encoded, prompt)
+            text = self._vision_llm(base64_encoded, prompt)
 
             return text
 
@@ -221,9 +221,9 @@ class MarkdownParser:
             self.logger.error(
                 f"Text Extraction failed for page {page_number + 1}: {str(e)}"
             )
-            raise MarkdownParserError(
+            raise VisionParserError(
                 message=f"Text Extraction failed for page {page_number + 1}: {str(e)}",
-                source="_convert_page in MarkdownParser class",
+                source="_convert_page in VisionParser class",
             )
         finally:
             pix = None
@@ -235,10 +235,10 @@ class MarkdownParser:
 
         if not pdf_path.exists():
             self.logger.critical(f"PDF file not found: {pdf_path}")
-            raise MarkdownParserError(
+            raise VisionParserError(
                 message=f"PDF file not found: {pdf_path}",
                 error_code=2,
-                source="convert_pdf in MarkdownParser class",
+                source="convert_pdf in VisionParser class",
             )
 
         try:
@@ -260,9 +260,9 @@ class MarkdownParser:
 
         except Exception as e:
             self.logger.critical(f"Markdown Parser failed: {str(e)}")
-            raise MarkdownParserError(
+            raise VisionParserError(
                 message=f"Markdown Parser failed: {str(e)}",
-                source="convert_pdf in MarkdownParser class",
+                source="convert_pdf in VisionParser class",
             )
 
 
@@ -272,13 +272,13 @@ def main():
     args = parser.parse_args()
 
     try:
-        converter = MarkdownParser()
+        converter = VisionParser()
         converted_pages = converter.convert_pdf(args.pdf_path)
         print(
             f"\nSuccessfully converted {len(converted_pages)} pages into markdown text"
         )
 
-    except MarkdownParserError as e:
+    except VisionParserError as e:
         print(f"Conversion failed: {str(e)}", file=sys.stderr)
         sys.exit(1)
 

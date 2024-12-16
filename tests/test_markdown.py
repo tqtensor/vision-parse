@@ -2,7 +2,7 @@ import pytest
 import base64
 import json
 from unittest.mock import patch
-from multimodal_parser.markdown import MarkdownParserError, ImageAnalysis
+from vision_parse.parser import VisionParserError, ImageAnalysis
 
 
 def test_calculate_matrix(markdown_parser, pdf_document):
@@ -44,14 +44,14 @@ def test_structured_llm(mock_chat, markdown_parser):
 
 
 @patch("ollama.chat")
-def test_multimodal_llm(mock_chat, markdown_parser):
-    """Test multimodal LLM conversion of image to markdown."""
+def test_vision_llm(mock_chat, markdown_parser):
+    """Test Vision LLM conversion of image to markdown."""
     expected_markdown = "# Test Header\n\nThis is a test markdown content."
     mock_response = {"message": {"content": expected_markdown}}
     mock_chat.return_value = mock_response
 
     sample_base64 = base64.b64encode(b"test_image").decode("utf-8")
-    result = markdown_parser._multimodal_llm(sample_base64, "Test prompt")
+    result = markdown_parser._vision_llm(sample_base64, "Test prompt")
 
     assert result == expected_markdown
     mock_chat.assert_called_once()
@@ -59,7 +59,7 @@ def test_multimodal_llm(mock_chat, markdown_parser):
 
 def test_convert_pdf_nonexistent_file(markdown_parser):
     """Test error handling for non-existent PDF files."""
-    with pytest.raises(MarkdownParserError) as exc_info:
+    with pytest.raises(VisionParserError) as exc_info:
         markdown_parser.convert_pdf("non-existent.pdf")
     assert "PDF file not found" in str(exc_info.value)
 
@@ -83,7 +83,7 @@ def test_convert_pdf_integration(markdown_parser, pdf_path):
 )
 def test_markdown_parser_error(error_input):
     """Test error handling and error message formatting."""
-    error = MarkdownParserError(
+    error = VisionParserError(
         message=error_input["message"],
         error_code=error_input["error_code"],
         source=error_input["source"],

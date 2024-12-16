@@ -1,6 +1,6 @@
-# Multimodal Parser
+# vision Parser
 
-Extract content from PDF documents using multimodal LLMs in markdown format.
+Extract content from PDF documents using vision LLMs in markdown format.
 
 ## Usage
 
