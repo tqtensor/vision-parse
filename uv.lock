@@ -172,7 +172,7 @@ wheels = [
 [[package]]
 name = "multimodal-parser"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
     { name = "ollama" },
@@ -181,7 +181,7 @@ dependencies = [
     { name = "tqdm" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "black" },
     { name = "pytest" },
@@ -190,18 +190,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "black", marker = "extra == 'dev'", specifier = ">=24.10.0" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "ollama", specifier = ">=0.4.4" },
     { name = "pydantic", specifier = ">=2.10.3" },
     { name = "pymupdf", specifier = ">=1.25.1" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.4" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.3" },
     { name = "tqdm", specifier = ">=4.67.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black", specifier = ">=24.10.0" },
-    { name = "pytest", specifier = ">=8.3.4" },
-    { name = "ruff", specifier = ">=0.8.3" },
 ]
 
 [[package]]

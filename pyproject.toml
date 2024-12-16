@@ -1,9 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "multimodal-parser"
 version = "0.1.0"
 description = "Extract content from PDF documents using multimodal LLMs in markdown format"
 readme = "README.md"
 requires-python = ">=3.13"
+license = "MIT"
+authors = [
+    { name = "Arun Brahma", email = "mithubrahma@gmail.com" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "jinja2>=3.1.4",
     "ollama>=0.4.4",
@@ -12,9 +27,26 @@ dependencies = [
     "tqdm>=4.67.1",
 ]
 
-[dependency-groups]
+[project.urls]
+Homepage = "https://github.com/iamarunbrahma/multimodal-parser"
+Repository = "https://github.com/iamarunbrahma/multimodal-parser.git"
+
+[project.optional-dependencies]
 dev = [
     "black>=24.10.0",
     "pytest>=8.3.4",
     "ruff>=0.8.3",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/multimodal_parser"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/multimodal_parser",
+    "/tests",
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/multimodal_parser/md_prompt.j2" = "multimodal_parser/md_prompt.j2"
+"src/multimodal_parser/img_analysis.prompt" = "multimodal_parser/img_analysis.prompt"

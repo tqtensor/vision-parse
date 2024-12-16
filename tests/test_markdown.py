@@ -2,7 +2,7 @@ import pytest
 import base64
 import json
 from unittest.mock import patch
-from src.markdown import MarkdownParserError, ImageAnalysis
+from multimodal_parser.markdown import MarkdownParserError, ImageAnalysis
 
 
 def test_calculate_matrix(markdown_parser, pdf_document):

@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 import fitz
-from src.markdown import PDFPageConfig, MarkdownParser
+from multimodal_parser.markdown import PDFPageConfig, MarkdownParser
 
 
 @pytest.fixture

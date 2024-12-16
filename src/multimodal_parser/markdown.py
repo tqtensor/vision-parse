@@ -9,6 +9,7 @@ from pydantic import BaseModel
 import ollama
 import sys
 from jinja2 import Template
+import importlib.resources as pkg_resources
 
 
 class PDFPageConfig(BaseModel):
@@ -87,23 +88,30 @@ class MarkdownParser:
         self.top_p = top_p
 
         try:
-            with open(Path("md_prompt.j2"), "r", encoding="utf-8") as file:
-                self.md_prompt = Template(file.read())
-        except FileNotFoundError:
+            prompt_text = (
+                pkg_resources.files("multimodal_parser")
+                .joinpath("md_prompt.j2")
+                .read_text()
+            )
+            self.md_prompt = Template(prompt_text)
+        except Exception as e:
             self.logger.critical("Markdown prompt file for Multimodal LLM not found")
             raise MarkdownParserError(
-                message="Markdown prompt file for Multimodal LLM not found",
+                message=f"Markdown prompt file for Multimodal LLM not found: {str(e)}",
                 error_code=2,
                 source="__init__.py in MarkdownParser class",
             )
 
         try:
-            with open(Path("img_analysis.prompt"), "r", encoding="utf-8") as file:
-                self.image_analysis_prompt = file.read()
-        except FileNotFoundError:
+            self.image_analysis_prompt = (
+                pkg_resources.files("multimodal_parser")
+                .joinpath("img_analysis.prompt")
+                .read_text()
+            )
+        except Exception as e:
             self.logger.critical("Image Analysis prompt file not found")
             raise MarkdownParserError(
-                message="Image Analysis prompt file not found",
+                message=f"Image Analysis prompt file not found: {str(e)}",
                 error_code=2,
                 source="__init__.py in MarkdownParser class",
             )
