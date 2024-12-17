@@ -145,7 +145,7 @@ class VisionParser:
                 options={
                     "temperature": self.temperature,
                     "top_p": self.top_p,
-                    **self.kwargs
+                    **self.kwargs,
                 },
             )
             return response["message"]["content"]
@@ -169,11 +169,7 @@ class VisionParser:
                         "images": [base64_encoded],
                     }
                 ],
-                options={
-                    "temperature": 0.0,
-                    "top_p": 0.4,
-                    **self.kwargs
-                },
+                options={"temperature": 0.0, "top_p": 0.4, **self.kwargs},
             )
             return ImageAnalysis.model_validate_json(response["message"]["content"])
         except Exception as e:
