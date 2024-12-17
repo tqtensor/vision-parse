@@ -1,4 +1,4 @@
-import fitz
+import fitz  # PyMuPDF library for PDF processing
 from pathlib import Path
 from typing import Optional, List, Literal, Any
 import logging
@@ -14,10 +14,10 @@ from jinja2 import Template
 class PDFPageConfig(BaseModel):
     """Configuration settings for PDF page conversion."""
 
-    dpi: int = 400
-    color_space: str = "RGB"
-    include_annotations: bool = True
-    preserve_transparency: bool = False
+    dpi: int = 400  # Resolution for PDF to image conversion
+    color_space: str = "RGB"  # Color mode for image output
+    include_annotations: bool = True  # Include PDF annotations in conversion
+    preserve_transparency: bool = False  # Control alpha channel in output
 
 
 class ImageAnalysis(BaseModel):
@@ -181,10 +181,12 @@ class VisionParser:
 
     def _calculate_matrix(self, page: fitz.Page) -> fitz.Matrix:
         """Calculate transformation matrix for page conversion."""
-        # Double the zoom factor to improve image quality for better text recognition
-        zoom = self.page_config.dpi / 72
+        # Calculate zoom factor based on target DPI
+        zoom = self.page_config.dpi / 72  # 72 is the base PDF DPI
+        # Double zoom for better quality and text recognition
         matrix = fitz.Matrix(zoom * 2, zoom * 2)
 
+        # Handle page rotation if present
         if page.rotation != 0:
             matrix.prerotate(page.rotation)
             self.logger.info(f"Applied rotation of {page.rotation} degrees")
@@ -196,7 +198,7 @@ class VisionParser:
         try:
             matrix = self._calculate_matrix(page)
 
-            # Convert PDF page to pixmap with specified configuration
+            # Create high-quality image from PDF page
             pix = page.get_pixmap(
                 matrix=matrix,
                 alpha=self.page_config.preserve_transparency,
@@ -204,11 +206,14 @@ class VisionParser:
                 annots=self.page_config.include_annotations,
             )
 
+            # Convert image to base64 for LLM processing
             base64_encoded = base64.b64encode(pix.tobytes("png")).decode("utf-8")
+            # Analyze image content and structure
             analysis_text = self._structured_llm(base64_encoded)
             if analysis_text.text_detected.strip() == "No":
                 return ""
 
+            # Generate markdown using template based on analysis
             prompt = self.md_prompt.render(
                 extracted_text=analysis_text.extracted_text,
                 tables_detected=analysis_text.tables_detected,
@@ -228,6 +233,7 @@ class VisionParser:
                 source="_convert_page in VisionParser class",
             )
         finally:
+            # Clean up pixmap to free memory
             pix = None
 
     def convert_pdf(self, pdf_path: str) -> List[str]:
@@ -244,10 +250,12 @@ class VisionParser:
             )
 
         try:
+            # Process PDF document page by page
             with fitz.open(pdf_path) as pdf_document:
                 total_pages = pdf_document.page_count
                 self.logger.info(f"Starting conversion of PDF with {total_pages} pages")
 
+                # Show progress bar for long-running conversions
                 with tqdm(total=total_pages, desc="Converting pages") as pbar:
                     for page_number in range(total_pages):
                         text = self._convert_page(
@@ -269,11 +277,13 @@ class VisionParser:
 
 
 def main():
+    # Set up command-line argument parser
     parser = argparse.ArgumentParser(description="Convert PDF pages to markdown text")
     parser.add_argument("pdf_path", type=str, help="Path to the input PDF file")
     args = parser.parse_args()
 
     try:
+        # Initialize converter with default settings
         converter = VisionParser()
         converted_pages = converter.convert_pdf(args.pdf_path)
         print(
