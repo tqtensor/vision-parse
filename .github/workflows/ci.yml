@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -28,13 +28,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install -e ".[dev]"
+        uv venv
+        . .venv/bin/activate
+        uv sync --all-extras
 
-    - name: Run linting
-      run: make lint
-
-    - name: Run formatting check
-      run: make format
-
-    - name: Run tests
-      run: make test
+    - name: Run quality checks
+      run: |
+        ruff check .
+        black . --check
+        make test

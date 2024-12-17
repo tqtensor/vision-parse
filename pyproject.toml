@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "vision-parse"
 version = "0.1.0"
-description = "Extract content from PDF documents using Vision LLMs in markdown format"
+description = "Parse PDF documents into markdown formatted content using Vision LLMs"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
