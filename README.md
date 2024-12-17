@@ -71,8 +71,8 @@ from vision_parse import VisionParser
 # Initialize parser
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
-    temperature=0.7,
-    top_p=0.7
+    temperature=0.9,
+    top_p=0.4
 )
 
 # Convert PDF to markdown
@@ -100,8 +100,8 @@ page_config = PDFPageConfig(
 # Initialize parser with custom config
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
-    temperature=0.7,
-    top_p=0.7,
+    temperature=0.9,
+    top_p=0.4,
     page_config=page_config
 )
 
