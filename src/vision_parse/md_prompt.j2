@@ -15,12 +15,13 @@ Your task is to analyze the given image and extract textual content in markdown 
 {% if tables_detected is defined and tables_detected|string == "Yes" %}
 - Preserve the tabular structure in markdown format using | for columns and - for the header row separator.
 - Ensure that the cell values are properly aligned within the table columns and the tabular data is not distorted.
-- Maintain the original positioning of the table within the scanned document.
+- Maintain the original positioning of the table within the scanned document. Do not include any additional explanations or comments.
 {% endif %}
 
 {% if images_detected is defined and images_detected|string == "Yes" %}
-- Convert inline images to base64 encoded png data uri format within the provided image in markdown format.
-- Maintain the original positioning of the image within the scanned document.
+- Convert sub images into base64 encoded data URI format within provided image including alt text in markdown format.
+- Ensure that the base64 encoded format is valid and is having png data format.
+- Maintain the original positioning of the image within the scanned document. Do not include any additional explanations or comments.
 {% endif %}
 
 - Preserve markdown text formatting if present such as bold, italics, underlines, headers, bullet points, links or other elements.

@@ -1,6 +1,6 @@
 import fitz
 from pathlib import Path
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Any
 import logging
 import argparse
 from tqdm import tqdm
@@ -73,10 +73,11 @@ class VisionParser:
 
     def __init__(
         self,
+        page_config: Optional[PDFPageConfig] = None,
         model_name: str = "llama3.2-vision:11b",
         temperature: float = 0.7,
         top_p: float = 0.7,
-        page_config: Optional[PDFPageConfig] = None,
+        **kwargs: Any,
     ):
         """Initialize parser with configuration and logger."""
         self.page_config = page_config or PDFPageConfig()
@@ -85,6 +86,7 @@ class VisionParser:
         self.model_name = model_name
         self.temperature = temperature
         self.top_p = top_p
+        self.kwargs = kwargs
 
         try:
             # For Python 3.8+ compatibility
@@ -143,6 +145,7 @@ class VisionParser:
                 options={
                     "temperature": self.temperature,
                     "top_p": self.top_p,
+                    **self.kwargs
                 },
             )
             return response["message"]["content"]
@@ -169,6 +172,7 @@ class VisionParser:
                 options={
                     "temperature": 0.0,
                     "top_p": 0.4,
+                    **self.kwargs
                 },
             )
             return ImageAnalysis.model_validate_json(response["message"]["content"])

@@ -719,7 +719,7 @@ wheels = [
 
 [[package]]
 name = "vision-parse"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "importlib-resources", marker = "python_full_version < '3.9'" },
