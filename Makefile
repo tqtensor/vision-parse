@@ -1,4 +1,4 @@
-.PHONY: lint format test
+.PHONY: lint format test release
 
 lint:
 	ruff check . --fix
@@ -8,3 +8,8 @@ format:
 
 test:
 	pytest -v --capture=no
+
+release:
+	python -m build
+	twine check dist/*
+	twine upload dist/*
