@@ -181,6 +181,7 @@ class VisionParser:
 
     def _calculate_matrix(self, page: fitz.Page) -> fitz.Matrix:
         """Calculate transformation matrix for page conversion."""
+        # Double the zoom factor to improve image quality for better text recognition
         zoom = self.page_config.dpi / 72
         matrix = fitz.Matrix(zoom * 2, zoom * 2)
 
@@ -194,6 +195,8 @@ class VisionParser:
         """Convert a single PDF page to base64-encoded PNG and extract markdown formatted text."""
         try:
             matrix = self._calculate_matrix(page)
+
+            # Convert PDF page to pixmap with specified configuration
             pix = page.get_pixmap(
                 matrix=matrix,
                 alpha=self.page_config.preserve_transparency,
