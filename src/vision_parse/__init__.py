@@ -1,5 +1,9 @@
 from .parser import VisionParser, PDFPageConfig, VisionParserError
+from importlib.metadata import version
 
-__version__ = "0.1.1"
+try:
+    __version__ = version("vision-parse")
+except Exception:
+    __version__ = "0.1.0"
 
 __all__ = ["VisionParser", "PDFPageConfig", "VisionParserError"]

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "vision-parse"
-version = "0.1.1"
+dynamic = ["version"]
 description = "Parse PDF documents into markdown formatted content using Vision LLMs"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -56,3 +56,6 @@ include = [
 [tool.hatch.build.targets.wheel.force-include]
 "src/vision_parse/md_prompt.j2" = "vision_parse/md_prompt.j2"
 "src/vision_parse/img_analysis.prompt" = "vision_parse/img_analysis.prompt"
+
+[tool.hatch.version]
+source = "vcs"
