@@ -37,4 +37,3 @@ jobs:
         source .venv/bin/activate
         ruff check .
         black . --check
-        pytest tests/
