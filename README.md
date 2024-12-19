@@ -4,25 +4,26 @@
 [![Author: Arun Brahma](https://img.shields.io/badge/Author-Arun%20Brahma-purple)](https://github.com/iamarunbrahma)
 [![PyPI version](https://img.shields.io/pypi/v/vision-parse.svg)](https://pypi.org/project/vision-parse/)
 
-> 🚀 Transform PDF documents into beautifully formatted markdown using state-of-the-art Vision Language Models - all with just a few lines of code!
+> 🚀 Parse PDF documents into beautifully formatted markdown content using state-of-the-art Vision Language Models - all with just a few lines of code!
 
 ## 🎯 Introduction
 
 Vision Parse harnesses the power of Vision Language Models to revolutionize document processing:
 
-- 📝 **Smart Content Extraction**: Intelligently identifies and extracts text, tables, and images with high precision
-- ✨ **Markdown Magic**: Converts complex document layouts into clean, well-structured markdown
-- 🎨 **Format Preservation**: Maintains document hierarchy, styling, and visual elements
-- 🤖 **AI-Powered Analysis**: Leverages cutting-edge vision models for superior accuracy
-- 🔄 **Batch Processing**: Handle multi-page documents effortlessly
+- 📝 **Smart Content Extraction**: Intelligently identifies and extracts text and tables with high precision
+- 🎨 **Content Formatting**: Preserves document hierarchy, styling, and indentation for markdown formatted content
+- 🤖 **Multi-LLM Support**: Supports multiple Vision LLM providers i.e. OpenAI, LLama, Gemini etc. for accuracy and speed
+- 🔄 **PDF Document Support**: Handle multi-page PDF documents effortlessly by converting each page into byte64 encoded images
+- 📁 **Local Model Hosting**: Supports local model hosting using Ollama for secure document processing and for offline use
 
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- 🐍 Python >= 3.8
-- 🖥️ Ollama (for local model hosting)
+- 🐍 Python >= 3.9
+- 🖥️ Ollama (if you want to use local models)
+- 🤖 API Key for OpenAI or Google Gemini (if you want to use OpenAI or Google Gemini)
 
 ### Installation
 
@@ -32,7 +33,7 @@ Install the package using pip:
 pip install vision-parse
 ```
 
-### Setting up Ollama
+### Setting up Ollama (Optional)
 
 1. **Install Ollama** based on your operating system:
 
@@ -63,16 +64,17 @@ pip install vision-parse
 
 ## ⌛️ Usage
 
-### Basic Example
+### Basic Example Usage
 
 ```python
 from vision_parse import VisionParser
 
 # Initialize parser
 parser = VisionParser(
-    model_name="llama3.2-vision:11b",
+    model_name="llama3.2-vision:11b", # For local models, you don't need to provide the api key
     temperature=0.9,
-    top_p=0.4
+    top_p=0.4,
+    extraction_complexity=False # Set to True for more detailed extraction
 )
 
 # Convert PDF to markdown
@@ -80,11 +82,11 @@ pdf_path = "path/to/your/document.pdf"
 markdown_pages = parser.convert_pdf(pdf_path)
 
 # Process results
-for i, page_content in enumerate(markdown_pages, 1):
-    print(f"\n--- Page {i} ---\n{page_content}")
+for i, page_content in enumerate(markdown_pages):
+    print(f"\n--- Page {i+1} ---\n{page_content}")
 ```
 
-### Custom Configuration
+### PDF Page Configuration
 
 ```python
 from vision_parse import VisionParser, PDFPageConfig
@@ -97,11 +99,12 @@ page_config = PDFPageConfig(
     preserve_transparency=False
 )
 
-# Initialize parser with custom config
+# Initialize parser with custom page config
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
     temperature=0.9,
     top_p=0.4,
+    extraction_complexity=True,
     page_config=page_config
 )
 
@@ -110,40 +113,37 @@ pdf_path = "path/to/your/document.pdf"
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
 
+### OpenAI or Gemini Model Usage
 
-## 🛠️ Development
+```python
+from vision_parse import VisionParser
 
-### Setting Up Development Environment
+# Initialize parser with OpenAI model
+parser = VisionParser(
+    model_name="gpt-4o",
+    api_key="your-openai-api-key", # Get the OpenAI API key from https://platform.openai.com/api-keys
+    temperature=0.9,
+    top_p=0.4,
+    extraction_complexity=False # Set to True for more detailed extraction
+)
 
-1. **Clone and Setup**:
-   ```bash
-   # Clone the repository
-   git clone https://github.com/iamarunbrahma/vision-parse.git
-   cd vision-parse
-   ```
+# Initialize parser with Google Gemini model
+parser = VisionParser(
+    model_name="gemini-1.5-flasht",
+    api_key="your-gemini-api-key", # Get the Gemini API key from https://aistudio.google.com/app/apikey
+    temperature=0.9,
+    top_p=0.4,
+    extraction_complexity=False # Set to True for more detailed extraction
+)
+```
 
-2. **Install Dependencies**:
-   ```bash
-   # Install uv (Mac and Linux)
-   curl -LsSf https://astral.sh/uv/install.sh | sh
+## Supported Models
 
-   # Install uv (Windows)
-   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-   
-   # Install dependencies
-   uv sync --all-extras && source .venv/bin/activate
-   ```
+This package supports the following Vision LLM models:
 
-3. **Quality Checks**:
-   ```bash
-   # Run test suite
-   make test
-   
-   # Code quality
-   make lint    # Run code linting
-   make format  # Format code
-   ```
-
+- OpenAI: `gpt-4o`, `gpt-4o-mini`
+- Google Gemini: `gemini-1.5-flash`, `gemini-2.0-flash-exp`, `gemini-1.5-pro`
+- Meta Llama and LLava from Ollama: `llava:13b`, `llava:34b`, `llama3.2-vision:11b`, `llama3.2-vision:70b`
 
 ## 📄 License
 
