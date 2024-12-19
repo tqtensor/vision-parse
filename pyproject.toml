@@ -25,6 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "jinja2>=3.0.0",
+    "ollama>=0.4.4",
     "pydantic>=2.0.0",
     "pymupdf>=1.22.0",
     "tenacity>=9.0.0",
@@ -44,15 +45,11 @@ dev = [
 openai = [
     "openai==1.58.0",
 ]
-ollama = [
-    "ollama>=0.4.4",
-]
 gemini = [
     "google-generativeai==0.8.3",
 ]
 all = [
     "google-generativeai==0.8.3",
-    "ollama>=0.4.4",
     "openai==1.58.0",
 ]
 

@@ -9,6 +9,7 @@ Your task is to analyze the given image and extract textual content in markdown 
         - Strictly do not change any content in the original extracted text while applying markdown text formatting.
     {% else %}
         - Please carefully reanalyze the text in the image as the initial confidence score was low.
+        - Convert the provided image into markdown format and ensure that all content from the image is included.
     {% endif %}
 {% endif %}
 
@@ -19,13 +20,14 @@ Your task is to analyze the given image and extract textual content in markdown 
 {% endif %}
 
 {% if images_detected is defined and images_detected|string == "Yes" %}
-- Convert sub images into base64 encoded data URI format within provided image including alt text in markdown format.
-- Ensure that the base64 encoded format is valid and is having png data format.
+- Convert sub images into base64 encoded data URI format within provided image including alt text and render it in valid markdown format.
+- Strictly, ensure that the base64 encoded format is valid and is having png data URI format.
 - Maintain the original positioning of the image within the scanned document. Do not include any additional explanations or comments.
 {% endif %}
 
 - Preserve markdown text formatting if present such as bold, italics, underlines, headers, bullet points, links or other elements.
 - Strictly, do not omit any textual content from the given image and do not include any additional explanations, notes or comments.
 - Ensure that the content does not have unnecessary formatting and at the same time, preserve the original formatting as much as possible.
+- Strictly, do not generate code fences or backticks like ``` or ```markdown.
 
 {% endautoescape %}

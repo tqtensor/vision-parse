@@ -71,12 +71,7 @@ class LLM:
         self.provider = self._get_provider_name(model_name)
 
         if self.provider == "ollama":
-            try:
-                import ollama
-            except ImportError:
-                raise ImportError(
-                    "Ollama is not installed. Please install it using 'pip install vision-parse[ollama]'."
-                )
+            import ollama
 
             try:
                 ollama.show(self.model_name)
@@ -96,7 +91,7 @@ class LLM:
                 import openai
             except ImportError:
                 raise ImportError(
-                    "OpenAI is not installed. Please install it using 'pip install vision-parse[openai]'."
+                    "OpenAI is not installed. Please install it using pip install 'vision-parse[openai]'."
                 )
             try:
                 self.client = openai.OpenAI(api_key=api_key)
@@ -108,7 +103,7 @@ class LLM:
                 import google.generativeai as genai
             except ImportError:
                 raise ImportError(
-                    "Gemini is not installed. Please install it using 'pip install vision-parse[gemini]'."
+                    "Gemini is not installed. Please install it using pip install 'vision-parse[gemini]'."
                 )
 
             try:

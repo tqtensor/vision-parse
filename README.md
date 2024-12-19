@@ -27,10 +27,19 @@ Vision Parse harnesses the power of Vision Language Models to revolutionize docu
 
 ### Installation
 
-Install the package using pip:
+Install the package using pip (Recommended):
 
 ```bash
 pip install vision-parse
+```
+
+Install the optional dependencies for OpenAI or Gemini:
+```bash
+pip install 'vision-parse[openai]'
+```
+
+```bash
+pip install 'vision-parse[gemini]'
 ```
 
 ### Setting up Ollama (Optional)
