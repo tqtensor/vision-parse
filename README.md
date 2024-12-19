@@ -85,7 +85,7 @@ page_config = PDFPageConfig(
 # Initialize parser with custom page config
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
-    temperature=0.9,
+    temperature=0.7,
     top_p=0.4,
     extraction_complexity=True,
     page_config=page_config
