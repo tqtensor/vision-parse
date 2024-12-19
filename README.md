@@ -34,33 +34,7 @@ pip install vision-parse
 ```
 
 ### Setting up Ollama (Optional)
-
-1. **Install Ollama** based on your operating system:
-
-   **Linux:**
-   ```bash
-   curl -fsSL https://ollama.com/install.sh | sh
-   ```
-
-   **MacOS:**
-   ```bash
-   brew install ollama
-   ```
-
-   **Windows:**
-   Download and install from [Ollama Website](https://ollama.com/download/OllamaSetup.exe)
-
-2. **Pull and start** the Ollama server:
-   ```bash
-   ollama pull llama3.2-vision:11b
-   ollama serve
-   ```
-
-3. **Verify** server status:
-   ```bash
-   curl http://localhost:11434/api/version
-   ```
-
+See [examples/ollama_setup.md](examples/ollama_setup.md) on how to setup Ollama locally.
 
 ## ⌛️ Usage
 
@@ -129,7 +103,7 @@ parser = VisionParser(
 
 # Initialize parser with Google Gemini model
 parser = VisionParser(
-    model_name="gemini-1.5-flasht",
+    model_name="gemini-1.5-flash",
     api_key="your-gemini-api-key", # Get the Gemini API key from https://aistudio.google.com/app/apikey
     temperature=0.9,
     top_p=0.4,
