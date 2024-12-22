@@ -18,7 +18,6 @@ def mock_structured_response():
                 {
                     "text_detected": "Yes",
                     "tables_detected": "No",
-                    "images_detected": "No",
                     "extracted_text": "Test content",
                     "confidence_score_text": 0.9,
                 }
@@ -80,7 +79,6 @@ def test_openai_generate_markdown(MockOpenAI, sample_base64_image):
                     {
                         "text_detected": "Yes",
                         "tables_detected": "No",
-                        "images_detected": "No",
                         "extracted_text": "Test content",
                         "confidence_score_text": 0.9,
                     }
@@ -122,7 +120,6 @@ def test_gemini_generate_markdown(MockGenerativeModel, sample_base64_image):
                 {
                     "text_detected": "Yes",
                     "tables_detected": "No",
-                    "images_detected": "No",
                     "extracted_text": "Test content",
                     "confidence_score_text": 0.9,
                 }
@@ -176,7 +173,6 @@ def test_openai_llm_error(MockOpenAI, sample_base64_image):
                     {
                         "text_detected": "Yes",
                         "tables_detected": "No",
-                        "images_detected": "No",
                         "extracted_text": "Test content",
                         "confidence_score_text": 0.9,
                     }

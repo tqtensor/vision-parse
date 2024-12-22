@@ -57,7 +57,7 @@ parser = VisionParser(
     model_name="llama3.2-vision:11b", # For local models, you don't need to provide the api key
     temperature=0.7,
     top_p=0.4,
-    extraction_complexity=True # Set to True for more detailed extraction
+    extraction_complexity=False # Set to True for more detailed extraction
 )
 
 # Convert PDF to markdown

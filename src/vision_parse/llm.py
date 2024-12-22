@@ -22,7 +22,6 @@ class ImageDescription(BaseModel):
 
     text_detected: Literal["Yes", "No"]
     tables_detected: Literal["Yes", "No"]
-    images_detected: Literal["Yes", "No"]
     extracted_text: str
     confidence_score_text: float
 
@@ -153,7 +152,6 @@ class LLM:
             prompt = self._md_prompt_template.render(
                 extracted_text=json_response.extracted_text,
                 tables_detected=json_response.tables_detected,
-                images_detected=json_response.images_detected,
                 confidence_score_text=float(json_response.confidence_score_text),
             )
 
@@ -161,7 +159,6 @@ class LLM:
             prompt = self._md_prompt_template.render(
                 extracted_text="",
                 tables_detected="Yes",
-                images_detected="Yes",
                 confidence_score_text=0.0,
             )
 

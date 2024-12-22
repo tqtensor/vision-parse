@@ -38,7 +38,7 @@ class VisionParser:
         api_key: Optional[str] = None,
         temperature: float = 0.7,
         top_p: float = 0.7,
-        extraction_complexity: bool = True,
+        extraction_complexity: bool = False,
         **kwargs: Any,
     ):
         """Initialize parser with PDFPageConfig and LLM configuration."""

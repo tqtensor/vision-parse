@@ -19,12 +19,6 @@ Your task is to analyze the given image and extract textual content in markdown 
 - Maintain the original positioning of the table within the scanned document. Do not include any additional explanations or comments.
 {% endif %}
 
-{% if images_detected is defined and images_detected|string == "Yes" %}
-- Convert sub images into base64 encoded data URI format within provided image including alt text and render it in valid markdown format.
-- Strictly, ensure that the base64 encoded format is valid and is having png data URI format.
-- Maintain the original positioning of the image within the scanned document. Do not include any additional explanations or comments.
-{% endif %}
-
 - Preserve markdown text formatting if present such as bold, italics, underlines, headers, bullet points, links or other elements.
 - Strictly, do not omit any textual content from the given image and do not include any additional explanations, notes or comments.
 - Ensure that the content does not have unnecessary formatting and at the same time, preserve the original formatting as much as possible.
