@@ -10,7 +10,7 @@ services:
     environment:
       - MODEL_NAME=${MODEL_NAME:?MODEL_NAME is required}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}  # Optional: For OpenAI models
-      - GOOGLE_API_KEY=${GEMINI_API_KEY:-}  # Optional: For Gemini models
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}  # Optional: For Gemini models
     volumes:
       - .:/app
     working_dir: /app
