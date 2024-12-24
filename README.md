@@ -55,8 +55,8 @@ from vision_parse import VisionParser
 # Initialize parser
 parser = VisionParser(
     model_name="llama3.2-vision:11b", # For local models, you don't need to provide the api key
-    temperature=0.7,
-    top_p=0.4,
+    temperature=0.4,
+    top_p=0.3,
     extraction_complexity=False # Set to True for more detailed extraction
 )
 
@@ -87,7 +87,7 @@ parser = VisionParser(
     model_name="llama3.2-vision:11b",
     temperature=0.7,
     top_p=0.4,
-    extraction_complexity=True,
+    extraction_complexity=False,
     page_config=page_config
 )
 
@@ -105,18 +105,18 @@ from vision_parse import VisionParser
 parser = VisionParser(
     model_name="gpt-4o",
     api_key="your-openai-api-key", # Get the OpenAI API key from https://platform.openai.com/api-keys
-    temperature=0.9,
+    temperature=0.7,
     top_p=0.4,
-    extraction_complexity=False # Set to True for more detailed extraction
+    extraction_complexity=True # Set to True for more detailed extraction
 )
 
 # Initialize parser with Google Gemini model
 parser = VisionParser(
     model_name="gemini-1.5-flash",
     api_key="your-gemini-api-key", # Get the Gemini API key from https://aistudio.google.com/app/apikey
-    temperature=0.9,
+    temperature=0.7,
     top_p=0.4,
-    extraction_complexity=False # Set to True for more detailed extraction
+    extraction_complexity=True # Set to True for more detailed extraction
 )
 ```
 
