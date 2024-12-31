@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 import json
 import base64
 from vision_parse.llm import LLM, UnsupportedModelError, LLMError
@@ -18,6 +18,7 @@ def mock_structured_response():
                 {
                     "text_detected": "Yes",
                     "tables_detected": "No",
+                    "images_detected": "No",
                     "extracted_text": "Test content",
                     "confidence_score_text": 0.9,
                 }
@@ -31,6 +32,17 @@ def mock_markdown_response():
     return {"message": {"content": "# Test Header\n\nThis is test content."}}
 
 
+@pytest.fixture
+def mock_pixmap():
+    mock = MagicMock()
+    mock.samples = b"\x00" * (200 * 200 * 3)  # Create correct size buffer
+    mock.height = 200
+    mock.width = 200
+    mock.n = 3
+    mock.tobytes.return_value = b"test_image_data"
+    return mock
+
+
 def test_unsupported_model():
     """Test error handling for unsupported models."""
     with pytest.raises(UnsupportedModelError) as exc_info:
@@ -39,46 +51,86 @@ def test_unsupported_model():
             temperature=0.7,
             top_p=0.7,
             api_key=None,
-            complexity=True,
+            ollama_config=None,
+            image_mode=None,
+            detailed_extraction=False,
+            enable_concurrency=False,
+            device=None,
+            num_workers=1,
         )
     assert "is not supported" in str(exc_info.value)
 
 
-@patch("ollama.chat")
-def test_ollama_generate_markdown(
-    mock_chat, sample_base64_image, mock_structured_response, mock_markdown_response
+@pytest.mark.asyncio
+@patch("ollama.AsyncClient")
+async def test_ollama_generate_markdown(
+    mock_async_client,
+    sample_base64_image,
+    mock_pixmap,
 ):
     """Test markdown generation using Ollama."""
-    mock_chat.side_effect = [mock_structured_response, mock_markdown_response]
+    # Mock the Ollama async client
+    mock_client = AsyncMock()
+    mock_async_client.return_value = mock_client
+
+    # Mock the chat responses
+    mock_chat = AsyncMock()
+    mock_chat.side_effect = [
+        {
+            "message": {
+                "content": json.dumps(
+                    {
+                        "text_detected": "Yes",
+                        "tables_detected": "No",
+                        "images_detected": "No",
+                        "extracted_text": "Test content",
+                        "confidence_score_text": 0.9,
+                    }
+                )
+            }
+        },
+        {"message": {"content": "# Test Header\n\nThis is test content."}},
+    ]
+    mock_client.chat = mock_chat
 
     llm = LLM(
         model_name="llama3.2-vision:11b",
         temperature=0.7,
         top_p=0.7,
         api_key=None,
-        complexity=True,
+        ollama_config=None,
+        image_mode=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
     )
-    result = llm.generate_markdown(sample_base64_image)
+    result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 
     assert isinstance(result, str)
-    assert "Test Header" in result
-    assert mock_chat.call_count == 2
+    assert "Test content" in result
+    assert mock_chat.call_count == 1
 
 
-@patch("openai.OpenAI")
-def test_openai_generate_markdown(MockOpenAI, sample_base64_image):
+@pytest.mark.asyncio
+@patch("openai.AsyncOpenAI")
+async def test_openai_generate_markdown(
+    MockAsyncOpenAI, sample_base64_image, mock_pixmap
+):
     """Test markdown generation using OpenAI."""
-    mock_client = MagicMock()
-    MockOpenAI.return_value = mock_client
+    mock_client = AsyncMock()
+    MockAsyncOpenAI.return_value = mock_client
 
     # Mock structured analysis response
-    mock_client.beta.chat.completions.parse.return_value.choices = [
-        MagicMock(
-            message=MagicMock(
+    mock_parse = AsyncMock()
+    mock_parse.choices = [
+        AsyncMock(
+            message=AsyncMock(
                 content=json.dumps(
                     {
                         "text_detected": "Yes",
                         "tables_detected": "No",
+                        "images_detected": "No",
                         "extracted_text": "Test content",
                         "confidence_score_text": 0.9,
                     }
@@ -86,100 +138,179 @@ def test_openai_generate_markdown(MockOpenAI, sample_base64_image):
             )
         )
     ]
+    mock_client.beta.chat.completions.parse = AsyncMock(return_value=mock_parse)
 
     # Mock markdown conversion response
-    mock_client.chat.completions.create.return_value.choices = [
-        MagicMock(message=MagicMock(content="# Test Header\n\nThis is test content."))
+    mock_create = AsyncMock()
+    mock_create.choices = [
+        AsyncMock(message=AsyncMock(content="# Test Header\n\nThis is test content."))
     ]
+    mock_client.chat.completions.create = AsyncMock(return_value=mock_create)
 
     llm = LLM(
         model_name="gpt-4o",
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        complexity=True,
+        ollama_config=None,
+        image_mode=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
     )
-    result = llm.generate_markdown(sample_base64_image)
+    result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 
     assert isinstance(result, str)
-    assert "Test Header" in result
+    assert "Test content" in result
     assert mock_client.beta.chat.completions.parse.called
-    assert mock_client.chat.completions.create.called
+    assert not mock_client.chat.completions.create.called
 
 
+@pytest.mark.asyncio
 @patch("google.generativeai.GenerativeModel")
-def test_gemini_generate_markdown(MockGenerativeModel, sample_base64_image):
+async def test_gemini_generate_markdown(
+    MockGenerativeModel, sample_base64_image, mock_pixmap
+):
     """Test markdown generation using Gemini."""
-    mock_client = MagicMock()
+    mock_client = AsyncMock()
     MockGenerativeModel.return_value = mock_client
 
     # Mock responses for both structured analysis and markdown generation
-    mock_client.generate_content.side_effect = [
-        MagicMock(
-            text=json.dumps(
-                {
-                    "text_detected": "Yes",
-                    "tables_detected": "No",
-                    "extracted_text": "Test content",
-                    "confidence_score_text": 0.9,
-                }
-            )
-        ),
-        MagicMock(text="# Test Header\n\nThis is test content."),
-    ]
+    mock_response1 = AsyncMock()
+    mock_response1.text = json.dumps(
+        {
+            "text_detected": "Yes",
+            "tables_detected": "No",
+            "images_detected": "No",
+            "extracted_text": "Test content",
+            "confidence_score_text": 0.9,
+        }
+    )
+    mock_response2 = AsyncMock()
+    mock_response2.text = "# Test Header\n\nThis is test content."
+
+    mock_client.generate_content_async = AsyncMock(
+        side_effect=[mock_response1, mock_response2]
+    )
 
     llm = LLM(
         model_name="gemini-1.5-pro",
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        complexity=True,
+        ollama_config=None,
+        image_mode=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
     )
-    result = llm.generate_markdown(sample_base64_image)
+    result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 
     assert isinstance(result, str)
-    assert "Test Header" in result
-    assert mock_client.generate_content.call_count == 2
+    assert "Test content" in result
+    assert mock_client.generate_content_async.call_count == 1
 
 
-@patch("ollama.chat")
-def test_ollama_llm_error(mock_chat, sample_base64_image):
-    """Test LLMError handling for Ollama."""
-    mock_chat.side_effect = Exception("Ollama processing failed")
+@pytest.mark.asyncio
+@patch("ollama.AsyncClient")
+async def test_ollama_base64_image_mode(
+    mock_async_client,
+    sample_base64_image,
+    mock_pixmap,
+):
+    """Test markdown generation with base64 image mode."""
+    # Mock the Ollama async client
+    mock_client = AsyncMock()
+    mock_async_client.return_value = mock_client
+
+    # Mock the chat responses
+    mock_chat = AsyncMock()
+    mock_chat.side_effect = [
+        {
+            "message": {
+                "content": json.dumps(
+                    {
+                        "text_detected": "Yes",
+                        "tables_detected": "No",
+                        "images_detected": "Yes",
+                        "extracted_text": "Test content with image",
+                        "confidence_score_text": 0.9,
+                    }
+                )
+            }
+        },
+        {
+            "message": {
+                "content": "# Test Header\n\n![Image 1](data:image/png;base64,test_image)"
+            }
+        },
+    ]
+    mock_client.chat = mock_chat
+
+    # Mock the pixmap for image extraction
+    mock_pixmap.samples = b"\x00" * (200 * 200 * 3)  # Create correct size buffer
+    mock_pixmap.height = 200
+    mock_pixmap.width = 200
+    mock_pixmap.n = 3
 
     llm = LLM(
         model_name="llama3.2-vision:11b",
         temperature=0.7,
         top_p=0.7,
         api_key=None,
-        complexity=True,
+        ollama_config=None,
+        image_mode="base64",
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
     )
+    result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
+
+    assert isinstance(result, str)
+    assert "# Test Header" in result
+    assert "data:image/png;base64,test_image" in result
+    assert mock_chat.call_count == 2
+
+
+@pytest.mark.asyncio
+@patch("ollama.AsyncClient")
+async def test_ollama_llm_error(mock_async_client, sample_base64_image, mock_pixmap):
+    """Test LLMError handling for Ollama."""
+    # Mock the Ollama async client
+    mock_client = AsyncMock()
+    mock_async_client.return_value = mock_client
+
+    # Mock a failed Ollama API call
+    mock_client.chat.side_effect = Exception("Ollama processing failed")
+
+    llm = LLM(
+        model_name="llama3.2-vision:11b",
+        temperature=0.7,
+        top_p=0.7,
+        api_key=None,
+        ollama_config=None,
+        image_mode=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
+    )
+
     with pytest.raises(LLMError) as exc_info:
-        llm.generate_markdown(sample_base64_image)
+        await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
     assert "Ollama Model processing failed" in str(exc_info.value)
+    assert mock_client.chat.call_count == 1
 
 
-@patch("openai.OpenAI")
-def test_openai_llm_error(MockOpenAI, sample_base64_image):
+@pytest.mark.asyncio
+@patch("openai.AsyncOpenAI")
+async def test_openai_llm_error(MockAsyncOpenAI, sample_base64_image, mock_pixmap):
     """Test LLMError handling for OpenAI."""
-    mock_client = MagicMock()
-    MockOpenAI.return_value = mock_client
-
-    # Mock structured analysis response
-    mock_client.beta.chat.completions.parse.return_value.choices = [
-        MagicMock(
-            message=MagicMock(
-                content=json.dumps(
-                    {
-                        "text_detected": "Yes",
-                        "tables_detected": "No",
-                        "extracted_text": "Test content",
-                        "confidence_score_text": 0.9,
-                    }
-                )
-            )
-        )
-    ]
+    mock_client = AsyncMock()
+    MockAsyncOpenAI.return_value = mock_client
 
     # Mock API error for markdown generation
     mock_client.chat.completions.create.side_effect = Exception("OpenAI API error")
@@ -189,17 +320,24 @@ def test_openai_llm_error(MockOpenAI, sample_base64_image):
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        complexity=True,
+        ollama_config=None,
+        image_mode=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
     )
+
     with pytest.raises(LLMError) as exc_info:
-        llm.generate_markdown(sample_base64_image)
+        await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
     assert "OpenAI Model processing failed" in str(exc_info.value)
 
 
+@pytest.mark.asyncio
 @patch("google.generativeai.GenerativeModel")
-def test_gemini_llm_error(MockGenerativeModel, sample_base64_image):
+async def test_gemini_llm_error(MockGenerativeModel, sample_base64_image, mock_pixmap):
     """Test LLMError handling for Gemini."""
-    mock_client = MagicMock()
+    mock_client = AsyncMock()
     MockGenerativeModel.return_value = mock_client
 
     # Mock API error
@@ -210,8 +348,14 @@ def test_gemini_llm_error(MockGenerativeModel, sample_base64_image):
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        complexity=True,
+        ollama_config=None,
+        image_mode=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
     )
+
     with pytest.raises(LLMError) as exc_info:
-        llm.generate_markdown(sample_base64_image)
+        await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
     assert "Gemini Model processing failed" in str(exc_info.value)

@@ -25,7 +25,10 @@ classifiers = [
 ]
 dependencies = [
     "jinja2>=3.0.0",
+    "nest-asyncio>=1.6.0",
+    "numpy>=2.0.0",
     "ollama>=0.4.4",
+    "opencv-python>=4.10.0.84",
     "pydantic>=2.0.0",
     "pymupdf>=1.22.0",
     "tenacity>=9.0.0",
@@ -39,14 +42,16 @@ Repository = "https://github.com/iamarunbrahma/vision-parse.git"
 [project.optional-dependencies]
 dev = [
     "black>=24.4.1",
+    "black[jupyter]>=24.8.0",
     "pytest>=8.3.4",
+    "pytest-asyncio>=0.23.5",
     "ruff>=0.8.3",
-]
-openai = [
-    "openai==1.58.0",
 ]
 gemini = [
     "google-generativeai==0.8.3",
+]
+openai = [
+    "openai==1.58.0",
 ]
 all = [
     "google-generativeai==0.8.3",

@@ -16,7 +16,14 @@ Your task is to analyze the given image and extract textual content in markdown 
 {% if tables_detected is defined and tables_detected|string == "Yes" %}
 - Preserve the tabular structure in markdown format using | for columns and - for the header row separator.
 - Ensure that the cell values are properly aligned within the table columns and the tabular data is not distorted.
-- Maintain the original positioning of the table within the scanned document. Do not include any additional explanations or comments.
+- Maintain the original positioning of the table within the scanned document. Strictly, do not include any additional explanations or comments.
+{% endif %}
+
+{% if extracted_images is defined and extracted_images|length > 0 %}
+{% for image in extracted_images %}
+- Strictly include reference-style markdown format ![]({{ image.image_url }}) within the markdown formatted extracted text.
+- Strictly do not include any additional explanations or comments or alt text. Only include ![]({{ image.image_url }}) within the markdown formatted text.
+{% endfor %}
 {% endif %}
 
 - Preserve markdown text formatting if present such as bold, italics, underlines, headers, bullet points, links or other elements.

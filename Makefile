@@ -1,9 +1,12 @@
-.PHONY: lint format test release tag
+.PHONY: lint format test release tag format-nb
 
 lint:
 	ruff check . --fix
 
-format:
+format-nb:
+	black --ipynb examples/*.ipynb
+
+format: format-nb
 	black .
 
 test:

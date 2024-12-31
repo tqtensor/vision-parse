@@ -1,10 +1,17 @@
 import fitz  # PyMuPDF library for PDF processing
 from pathlib import Path
-from typing import Optional, List, Union, Any
+from typing import Optional, List, Dict, Union, Literal, Any
 from tqdm import tqdm
 import base64
 from pydantic import BaseModel
+import asyncio
+from .utils import get_device_config
 from .llm import LLM
+import nest_asyncio
+import logging
+
+logger = logging.getLogger(__name__)
+nest_asyncio.apply()
 
 
 class PDFPageConfig(BaseModel):
@@ -38,27 +45,35 @@ class VisionParser:
         api_key: Optional[str] = None,
         temperature: float = 0.7,
         top_p: float = 0.7,
-        extraction_complexity: bool = False,
+        ollama_config: Optional[Dict] = None,
+        image_mode: Literal["url", "base64", None] = None,
+        detailed_extraction: bool = False,
+        enable_concurrency: bool = False,
         **kwargs: Any,
     ):
         """Initialize parser with PDFPageConfig and LLM configuration."""
         self.page_config = page_config or PDFPageConfig()
+        self.device, self.num_workers = get_device_config()
+        self.enable_concurrency = enable_concurrency
 
-        # Initialize LLM
         self.llm = LLM(
             model_name=model_name,
+            api_key=api_key,
             temperature=temperature,
             top_p=top_p,
-            api_key=api_key,
-            complexity=extraction_complexity,
+            ollama_config=ollama_config,
+            image_mode=image_mode,
+            detailed_extraction=detailed_extraction,
+            enable_concurrency=enable_concurrency,
+            device=self.device,
+            num_workers=self.num_workers,
             **kwargs,
         )
 
     def _calculate_matrix(self, page: fitz.Page) -> fitz.Matrix:
         """Calculate transformation matrix for page conversion."""
         # Calculate zoom factor based on target DPI
-        zoom = self.page_config.dpi / 72  # 72 is the base PDF DPI
-        # Double zoom for better quality and text recognition
+        zoom = self.page_config.dpi / 72
         matrix = fitz.Matrix(zoom * 2, zoom * 2)
 
         # Handle page rotation if present
@@ -67,7 +82,7 @@ class VisionParser:
 
         return matrix
 
-    def _convert_page(self, page: fitz.Page, page_number: int) -> str:
+    async def _convert_page(self, page: fitz.Page, page_number: int) -> str:
         """Convert a single PDF page into base64-encoded PNG and extract markdown formatted text."""
         try:
             matrix = self._calculate_matrix(page)
@@ -82,6 +97,7 @@ class VisionParser:
 
             # Convert image to base64 for LLM processing
             base64_encoded = base64.b64encode(pix.tobytes("png")).decode("utf-8")
+            return await self.llm.generate_markdown(base64_encoded, pix, page_number)
 
         except Exception as e:
             raise VisionParserError(
@@ -92,7 +108,15 @@ class VisionParser:
             if pix is not None:
                 pix = None
 
-        return self.llm.generate_markdown(base64_encoded)
+    async def _convert_pages_batch(self, pages: List[fitz.Page], start_idx: int):
+        """Process a batch of PDF pages concurrently."""
+        try:
+            tasks = []
+            for i, page in enumerate(pages):
+                tasks.append(self._convert_page(page, start_idx + i))
+            return await asyncio.gather(*tasks)
+        finally:
+            await asyncio.sleep(0.5)
 
     def convert_pdf(self, pdf_path: Union[str, Path]) -> List[str]:
         """Convert all pages in the given PDF file to markdown text."""
@@ -106,7 +130,6 @@ class VisionParser:
             raise UnsupportedFileError(f"File is not a PDF: {pdf_path}")
 
         try:
-            # Process PDF document page by page
             with fitz.open(pdf_path) as pdf_document:
                 total_pages = pdf_document.page_count
 
@@ -114,15 +137,31 @@ class VisionParser:
                     total=total_pages,
                     desc="Converting pages in PDF file into markdown format",
                 ) as pbar:
-                    for page_number in range(total_pages):
-                        text = self._convert_page(
-                            pdf_document[page_number], page_number
-                        )
+                    if self.enable_concurrency:
+                        # Process pages in batches based on num_workers
+                        for i in range(0, total_pages, self.num_workers):
+                            batch_size = min(self.num_workers, total_pages - i)
+                            # Extract only required pages for the batch
+                            batch_pages = [
+                                pdf_document[j] for j in range(i, i + batch_size)
+                            ]
+                            batch_results = asyncio.run(
+                                self._convert_pages_batch(batch_pages, i)
+                            )
+                            converted_pages.extend(batch_results)
+                            pbar.update(len(batch_results))
+                    else:
+                        for page_number in range(total_pages):
+                            # For non-concurrent processing, still need to run async code
+                            text = asyncio.run(
+                                self._convert_page(
+                                    pdf_document[page_number], page_number
+                                )
+                            )
+                            converted_pages.append(text)
+                            pbar.update(1)
 
-                        converted_pages.append(text)
-                        pbar.update(1)
-
-            return converted_pages
+                return converted_pages
 
         except Exception as e:
             raise VisionParserError(

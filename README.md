@@ -27,19 +27,33 @@ Vision Parse harnesses the power of Vision Language Models to revolutionize docu
 
 ### Installation
 
-Install the package using pip (Recommended):
+**Install the core package using pip (Recommended):**
 
 ```bash
 pip install vision-parse
 ```
 
-Install the optional dependencies for OpenAI or Gemini:
+**Install the additional dependencies for OpenAI or Gemini:**
+
 ```bash
+# For OpenAI support
 pip install 'vision-parse[openai]'
 ```
 
 ```bash
+# For Gemini support
 pip install 'vision-parse[gemini]'
+```
+
+```bash
+# To install all the additional dependencies
+pip install 'vision-parse[all]'
+```
+
+**Install the package from source:**
+
+```bash
+pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-parse[all]'
 ```
 
 ### Setting up Ollama (Optional)
@@ -56,8 +70,10 @@ from vision_parse import VisionParser
 parser = VisionParser(
     model_name="llama3.2-vision:11b", # For local models, you don't need to provide the api key
     temperature=0.4,
-    top_p=0.3,
-    extraction_complexity=False # Set to True for more detailed extraction
+    top_p=0.5,
+    image_mode="url", # Image mode can be "url", "base64" or None
+    detailed_extraction=False, # Set to True for more detailed extraction
+    enable_concurrency=False, # Set to True for parallel processing
 )
 
 # Convert PDF to markdown
@@ -69,26 +85,23 @@ for i, page_content in enumerate(markdown_pages):
     print(f"\n--- Page {i+1} ---\n{page_content}")
 ```
 
-### PDF Page Configuration
+### Customized Ollama Configuration
 
 ```python
 from vision_parse import VisionParser, PDFPageConfig
 
-# Configure PDF processing settings
-page_config = PDFPageConfig(
-    dpi=400,
-    color_space="RGB",
-    include_annotations=True,
-    preserve_transparency=False
-)
-
-# Initialize parser with custom page config
+# Initialize parser with Ollama configuration
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
     temperature=0.7,
-    top_p=0.4,
-    extraction_complexity=False,
-    page_config=page_config
+    top_p=0.6,
+    image_mode="base64",
+    detailed_extraction=True,
+    ollama_config={
+        "OLLAMA_NUM_PARALLEL": "4",
+    },
+    enable_concurrency=True,
+    num_ctx=4096,
 )
 
 # Convert PDF to markdown
@@ -107,7 +120,9 @@ parser = VisionParser(
     api_key="your-openai-api-key", # Get the OpenAI API key from https://platform.openai.com/api-keys
     temperature=0.7,
     top_p=0.4,
-    extraction_complexity=True # Set to True for more detailed extraction
+    image_mode="url",
+    detailed_extraction=True, # Set to True for more detailed extraction
+    enable_concurrency=True,
 )
 
 # Initialize parser with Google Gemini model
@@ -116,11 +131,13 @@ parser = VisionParser(
     api_key="your-gemini-api-key", # Get the Gemini API key from https://aistudio.google.com/app/apikey
     temperature=0.7,
     top_p=0.4,
-    extraction_complexity=True # Set to True for more detailed extraction
+    image_mode="url",
+    detailed_extraction=True, # Set to True for more detailed extraction
+    enable_concurrency=True,
 )
 ```
 
-## Supported Models
+## ✅ Supported Models
 
 This package supports the following Vision LLM models:
 
