@@ -88,20 +88,20 @@ for i, page_content in enumerate(markdown_pages):
 ### Customized Ollama Configuration
 
 ```python
-from vision_parse import VisionParser, PDFPageConfig
+from vision_parse import VisionParser
 
 # Initialize parser with Ollama configuration
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
     temperature=0.7,
     top_p=0.6,
+    num_ctx=4096,
     image_mode="base64",
     detailed_extraction=True,
     ollama_config={
         "OLLAMA_NUM_PARALLEL": "4",
     },
     enable_concurrency=True,
-    num_ctx=4096,
 )
 
 # Convert PDF to markdown

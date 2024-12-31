@@ -123,9 +123,6 @@ class LLM:
                         host=self.ollama_config.get(
                             "OLLAMA_HOST", "http://localhost:11434"
                         ),
-                        # timeout=self.ollama_config.get(
-                        #     "OLLAMA_REQUEST_TIMEOUT", 30.0
-                        # ),
                     )
                     if self.device == "cuda":
                         os.environ["OLLAMA_NUM_GPU"] = self.ollama_config.get(
