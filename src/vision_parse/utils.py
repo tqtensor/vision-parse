@@ -20,7 +20,6 @@ class ImageExtractionError(BaseException):
 class ImageData:
     image_url: str  # URL path for extracted images
     base64_encoded: str | None  # Base64 string if image_mode is base64, None otherwise
-    pos: Tuple[int, int, int, int]  # (x, y, width, height)
     _lock: ClassVar[Lock] = Lock()  # Lock for thread safety
 
     @staticmethod
@@ -121,7 +120,6 @@ class ImageData:
                                 ImageData(
                                     image_url=image_url,
                                     base64_encoded=None,
-                                    pos=(x, y, w, h),
                                 )
                             )
                         else:  # base64 mode
@@ -137,7 +135,6 @@ class ImageData:
                                 ImageData(
                                     image_url=image_url,
                                     base64_encoded=base64_encoded,
-                                    pos=(x, y, w, h),
                                 )
                             )
 

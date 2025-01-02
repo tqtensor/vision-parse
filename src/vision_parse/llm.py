@@ -19,6 +19,7 @@ class ImageDescription(BaseModel):
     text_detected: Literal["Yes", "No"]
     tables_detected: Literal["Yes", "No"]
     images_detected: Literal["Yes", "No"]
+    latex_equations_detected: Literal["Yes", "No"]
     extracted_text: str
     confidence_score_text: float
 
@@ -40,11 +41,11 @@ class LLM:
     try:
         from importlib.resources import files
 
-        _image_analysis_prompt = (
-            files("vision_parse").joinpath("img_analysis.prompt").read_text()
+        _image_analysis_prompt = Template(
+            files("vision_parse").joinpath("image_analysis.j2").read_text()
         )
         _md_prompt_template = Template(
-            files("vision_parse").joinpath("md_prompt.j2").read_text()
+            files("vision_parse").joinpath("markdown_prompt.j2").read_text()
         )
     except Exception as e:
         raise FileNotFoundError(f"Failed to load prompt files: {str(e)}")
@@ -56,7 +57,10 @@ class LLM:
         temperature: float,
         top_p: float,
         ollama_config: Union[Dict, None],
+        openai_config: Union[Dict, None],
+        gemini_config: Union[Dict, None],
         image_mode: Literal["url", "base64", None],
+        custom_prompt: Union[str, None],
         detailed_extraction: bool,
         enable_concurrency: bool,
         device: Literal["cuda", "mps", None],
@@ -66,9 +70,12 @@ class LLM:
         self.model_name = model_name
         self.api_key = api_key
         self.ollama_config = ollama_config or {}
+        self.openai_config = openai_config or {}
+        self.gemini_config = gemini_config or {}
         self.temperature = temperature
         self.top_p = top_p
         self.image_mode = image_mode
+        self.custom_prompt = custom_prompt
         self.detailed_extraction = detailed_extraction
         self.kwargs = kwargs
         self.enable_concurrency = enable_concurrency
@@ -123,6 +130,7 @@ class LLM:
                         host=self.ollama_config.get(
                             "OLLAMA_HOST", "http://localhost:11434"
                         ),
+                        timeout=self.ollama_config.get("OLLAMA_REQUEST_TIMEOUT", 240.0),
                     )
                     if self.device == "cuda":
                         os.environ["OLLAMA_NUM_GPU"] = self.ollama_config.get(
@@ -156,6 +164,7 @@ class LLM:
                         host=self.ollama_config.get(
                             "OLLAMA_HOST", "http://localhost:11434"
                         ),
+                        timeout=self.ollama_config.get("OLLAMA_REQUEST_TIMEOUT", 240.0),
                     )
             except Exception as e:
                 raise LLMError(f"Unable to initialize Ollama client: {str(e)}")
@@ -169,9 +178,15 @@ class LLM:
                 )
             try:
                 if self.enable_concurrency:
-                    self.aclient = openai.AsyncOpenAI(api_key=self.api_key)
+                    self.aclient = openai.AsyncOpenAI(
+                        api_key=self.api_key,
+                        **self.openai_config,
+                    )
                 else:
-                    self.client = openai.OpenAI(api_key=self.api_key)
+                    self.client = openai.OpenAI(
+                        api_key=self.api_key,
+                        **self.openai_config,
+                    )
             except openai.OpenAIError as e:
                 raise LLMError(f"Unable to initialize OpenAI client: {str(e)}")
 
@@ -222,7 +237,9 @@ class LLM:
         if self.detailed_extraction:
             try:
                 response = await self._get_response(
-                    base64_encoded, self._image_analysis_prompt, structured=True
+                    base64_encoded,
+                    self._image_analysis_prompt.render(),
+                    structured=True,
                 )
 
                 json_response = ImageDescription.model_validate_json(response)
@@ -231,8 +248,10 @@ class LLM:
                     return ""
 
                 if (
-                    float(json_response.confidence_score_text) > 0.6
+                    self.provider == "ollama"
+                    and float(json_response.confidence_score_text) > 0.6
                     and json_response.tables_detected.strip() == "No"
+                    and json_response.latex_equations_detected.strip() == "No"
                     and (
                         json_response.images_detected.strip() == "No"
                         or self.image_mode is None
@@ -250,9 +269,10 @@ class LLM:
 
                 prompt = self._md_prompt_template.render(
                     extracted_text=json_response.extracted_text,
-                    extracted_images=extracted_images,
                     tables_detected=json_response.tables_detected,
+                    latex_equations_detected=json_response.latex_equations_detected,
                     confidence_score_text=float(json_response.confidence_score_text),
+                    custom_prompt=self.custom_prompt,
                 )
 
             except Exception:
@@ -264,26 +284,27 @@ class LLM:
         if not self.detailed_extraction:
             prompt = self._md_prompt_template.render(
                 extracted_text="",
-                extracted_images=extracted_images,
                 tables_detected="Yes",
+                latex_equations_detected="Yes",
                 confidence_score_text=0.0,
+                custom_prompt=self.custom_prompt,
             )
 
         markdown_content = await self._get_response(
             base64_encoded, prompt, structured=False
         )
 
-        if extracted_images and self.image_mode == "base64":
-            for image_data in extracted_images:
-
-                def replace_match(match):
-                    if image_data.image_url in match.group(2):
-                        return f"![{match.group(1)}]({image_data.base64_encoded})"
-                    return match.group(0)
-
-                markdown_content = re.sub(
-                    r"!\[(.*?)\]\((.*?)\)", replace_match, markdown_content
-                )
+        if extracted_images:
+            if self.image_mode == "url":
+                for image_data in extracted_images:
+                    markdown_content += (
+                        f"\n\n![{image_data.image_url}]({image_data.image_url})"
+                    )
+            elif self.image_mode == "base64":
+                for image_data in extracted_images:
+                    markdown_content += (
+                        f"\n\n![{image_data.image_url}]({image_data.base64_encoded})"
+                    )
 
         return markdown_content
 

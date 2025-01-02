@@ -12,6 +12,13 @@ license = "MIT"
 authors = [
     { name = "Arun Brahma", email = "mithubrahma@gmail.com" }
 ]
+keywords = [
+    "pdf",
+    "markdown",
+    "vision",
+    "llm",
+    "ocr",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

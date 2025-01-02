@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Brahma"
+  given-names: "Arun"
+title: "Vision-Parse: Parse PDFs into markdown using Vision LLMs"
+date-released: 2024-12-31
+url: "https://github.com/iamarunbrahma/vision-parse"

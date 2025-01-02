@@ -52,7 +52,10 @@ def test_unsupported_model():
             top_p=0.7,
             api_key=None,
             ollama_config=None,
+            openai_config=None,
+            gemini_config=None,
             image_mode=None,
+            custom_prompt=None,
             detailed_extraction=False,
             enable_concurrency=False,
             device=None,
@@ -83,13 +86,13 @@ async def test_ollama_generate_markdown(
                         "text_detected": "Yes",
                         "tables_detected": "No",
                         "images_detected": "No",
+                        "latex_equations_detected": "No",
                         "extracted_text": "Test content",
                         "confidence_score_text": 0.9,
                     }
                 )
             }
-        },
-        {"message": {"content": "# Test Header\n\nThis is test content."}},
+        }
     ]
     mock_client.chat = mock_chat
 
@@ -99,7 +102,10 @@ async def test_ollama_generate_markdown(
         top_p=0.7,
         api_key=None,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode=None,
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,
@@ -131,6 +137,7 @@ async def test_openai_generate_markdown(
                         "text_detected": "Yes",
                         "tables_detected": "No",
                         "images_detected": "No",
+                        "latex_equations_detected": "No",
                         "extracted_text": "Test content",
                         "confidence_score_text": 0.9,
                     }
@@ -143,7 +150,7 @@ async def test_openai_generate_markdown(
     # Mock markdown conversion response
     mock_create = AsyncMock()
     mock_create.choices = [
-        AsyncMock(message=AsyncMock(content="# Test Header\n\nThis is test content."))
+        AsyncMock(message=AsyncMock(content="# Test Header\n\nTest content"))
     ]
     mock_client.chat.completions.create = AsyncMock(return_value=mock_create)
 
@@ -153,7 +160,10 @@ async def test_openai_generate_markdown(
         temperature=0.7,
         top_p=0.7,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode=None,
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,
@@ -164,7 +174,7 @@ async def test_openai_generate_markdown(
     assert isinstance(result, str)
     assert "Test content" in result
     assert mock_client.beta.chat.completions.parse.called
-    assert not mock_client.chat.completions.create.called
+    assert mock_client.chat.completions.create.called
 
 
 @pytest.mark.asyncio
@@ -183,12 +193,13 @@ async def test_gemini_generate_markdown(
             "text_detected": "Yes",
             "tables_detected": "No",
             "images_detected": "No",
+            "latex_equations_detected": "No",
             "extracted_text": "Test content",
             "confidence_score_text": 0.9,
         }
     )
     mock_response2 = AsyncMock()
-    mock_response2.text = "# Test Header\n\nThis is test content."
+    mock_response2.text = "# Test Header\n\nTest content"
 
     mock_client.generate_content_async = AsyncMock(
         side_effect=[mock_response1, mock_response2]
@@ -200,7 +211,10 @@ async def test_gemini_generate_markdown(
         temperature=0.7,
         top_p=0.7,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode=None,
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,
@@ -210,7 +224,7 @@ async def test_gemini_generate_markdown(
 
     assert isinstance(result, str)
     assert "Test content" in result
-    assert mock_client.generate_content_async.call_count == 1
+    assert mock_client.generate_content_async.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -261,7 +275,10 @@ async def test_ollama_base64_image_mode(
         top_p=0.7,
         api_key=None,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode="base64",
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,
@@ -292,7 +309,10 @@ async def test_ollama_llm_error(mock_async_client, sample_base64_image, mock_pix
         top_p=0.7,
         api_key=None,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode=None,
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,
@@ -321,7 +341,10 @@ async def test_openai_llm_error(MockAsyncOpenAI, sample_base64_image, mock_pixma
         temperature=0.7,
         top_p=0.7,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode=None,
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,
@@ -349,7 +372,10 @@ async def test_gemini_llm_error(MockGenerativeModel, sample_base64_image, mock_p
         temperature=0.7,
         top_p=0.7,
         ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
         image_mode=None,
+        custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
         device=None,

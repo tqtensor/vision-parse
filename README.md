@@ -77,7 +77,7 @@ parser = VisionParser(
 )
 
 # Convert PDF to markdown
-pdf_path = "path/to/your/document.pdf"
+pdf_path = "path/to/your/document.pdf" # local path to your pdf file
 markdown_pages = parser.convert_pdf(pdf_path)
 
 # Process results
@@ -85,7 +85,7 @@ for i, page_content in enumerate(markdown_pages):
     print(f"\n--- Page {i+1} ---\n{page_content}")
 ```
 
-### Customized Ollama Configuration
+### Customize Ollama Configuration for parallel processing
 
 ```python
 from vision_parse import VisionParser
@@ -100,6 +100,7 @@ parser = VisionParser(
     detailed_extraction=True,
     ollama_config={
         "OLLAMA_NUM_PARALLEL": "4",
+        "OLLAMA_REQUEST_TIMEOUT": "240.0",
     },
     enable_concurrency=True,
 )

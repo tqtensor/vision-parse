@@ -1,4 +1,6 @@
-Analyze this image and return a detailed JSON description including any text detected, images detected, tables detected, extracted text and confidence score for the extracted text.
+{% autoescape true %}
+
+Analyze this image and return a detailed JSON description including any text detected, images detected, tables detected, latex equations detected, extracted text and confidence score for the extracted text.
 - Confidence score for the extracted text should be a float value between 0 and 1. If you cannot determine certain details, leave those fields empty or zero.
 - Ensure markdown text formatting for extracted text is applied properly by analyzing the image.
 - Please ensure that the JSON object is valid and all the fields are present in the response as below:
@@ -8,7 +10,9 @@ Analyze this image and return a detailed JSON description including any text det
     "text_detected": "Yes" | "No",
     "images_detected": "Yes" | "No",
     "tables_detected": "Yes" | "No",
+    "latex_equations_detected": "Yes" | "No",
     "extracted_text": "Extracted text from the image",
     "confidence_score_text": "Confidence score for the extracted text"
 }
 ```
+{% endautoescape %}
