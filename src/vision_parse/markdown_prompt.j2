@@ -20,7 +20,7 @@ Your task is to analyze the given image and extract textual content in markdown 
 
 {% if latex_equations_detected is defined and latex_equations_detected|string == "Yes" %}
 - If latex equations are detected, preserve the inline math equations and block math equations in LaTeX format using math symbols, superscripts, subscripts, and other LaTeX formatting.
-- If inline equations are detected, enclose them in single dollar signs i.e. $...$ and if block equations are detected, enclose them in double dollar signs i.e. $$...$$.
+- If inline equations are detected, strictly enclose them in single dollar signs i.e. $...$ and if block equations are detected, strictly enclose them in double dollar signs i.e. $$...$$.
 - Strictly ensure that the LaTeX formatting is valid. Strictly do not include any additional explanations or comments.
 {% endif %}
 
