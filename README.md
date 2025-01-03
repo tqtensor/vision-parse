@@ -90,6 +90,10 @@ for i, page_content in enumerate(markdown_pages):
 ```python
 from vision_parse import VisionParser
 
+custom_prompt = """
+Strictly preserve markdown formatting during text extraction from scanned document.
+"""
+
 # Initialize parser with Ollama configuration
 parser = VisionParser(
     model_name="llama3.2-vision:11b",
@@ -97,9 +101,10 @@ parser = VisionParser(
     top_p=0.6,
     num_ctx=4096,
     image_mode="base64",
+    custom_prompt=custom_prompt,
     detailed_extraction=True,
     ollama_config={
-        "OLLAMA_NUM_PARALLEL": "4",
+        "OLLAMA_NUM_PARALLEL": "8",
         "OLLAMA_REQUEST_TIMEOUT": "240.0",
     },
     enable_concurrency=True,
