@@ -1,0 +1,5 @@
+marker-pdf
+markitdown
+nltk
+python-Levenshtein
+vision-parse
