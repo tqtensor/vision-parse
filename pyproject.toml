@@ -15,8 +15,9 @@ authors = [
 keywords = [
     "pdf",
     "markdown",
-    "vision",
-    "llm",
+    "pdf to markdown",
+    "vision llm",
+    "document parser",
     "ocr",
 ]
 classifiers = [

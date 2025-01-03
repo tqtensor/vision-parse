@@ -85,7 +85,7 @@ for i, page_content in enumerate(markdown_pages):
     print(f"\n--- Page {i+1} ---\n{page_content}")
 ```
 
-### Customize Ollama Configuration for parallel processing
+### Customize Ollama configuration for better performance
 
 ```python
 from vision_parse import VisionParser
