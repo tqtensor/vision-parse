@@ -10,11 +10,11 @@
 
 Vision Parse harnesses the power of Vision Language Models to revolutionize document processing:
 
-- 📝 **Smart Content Extraction**: Intelligently identifies and extracts text and tables with high precision
-- 🎨 **Content Formatting**: Preserves document hierarchy, styling, and indentation for markdown formatted content
-- 🤖 **Multi-LLM Support**: Supports multiple Vision LLM providers i.e. OpenAI, LLama, Gemini etc. for accuracy and speed
-- 🔄 **PDF Document Support**: Handle multi-page PDF documents effortlessly by converting each page into byte64 encoded images
-- 📁 **Local Model Hosting**: Supports local model hosting using Ollama for secure document processing and for offline use
+- 📝 **Smart Content Extraction**: Intelligently identifies and extracts text, tables, and LaTeX equations with high precision
+- 🎨 **Advanced Content Formatting**: Preserves LaTeX equations, hyperlinks, images, and footnotes for markdown-formatted content
+- 🤖 **Multi-LLM Support**: Seamlessly integrates with multiple Vision LLM providers such as OpenAI, Gemini, and Llama for optimal accuracy and speed
+- 🔄 **Scanned PDF Document Processing**: Extracts text, tables, images, and LaTeX equations from scanned PDF documents into well-structured markdown content
+- 📁 **Local Model Hosting**: Supports local model hosting with Ollama for secure, no-cost, private, and offline document processing
 
 
 ## 🚀 Getting Started
