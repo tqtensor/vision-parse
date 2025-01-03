@@ -180,12 +180,22 @@ class LLM:
                 if self.enable_concurrency:
                     self.aclient = openai.AsyncOpenAI(
                         api_key=self.api_key,
-                        **self.openai_config,
+                        base_url=self.openai_config.get("OPENAI_BASE_URL", None),
+                        max_retries=self.openai_config.get("OPENAI_MAX_RETRIES", 3),
+                        timeout=self.openai_config.get("OPENAI_TIMEOUT", 240.0),
+                        default_headers=self.openai_config.get(
+                            "OPENAI_DEFAULT_HEADERS", None
+                        ),
                     )
                 else:
                     self.client = openai.OpenAI(
                         api_key=self.api_key,
-                        **self.openai_config,
+                        base_url=self.openai_config.get("OPENAI_BASE_URL", None),
+                        max_retries=self.openai_config.get("OPENAI_MAX_RETRIES", 3),
+                        timeout=self.openai_config.get("OPENAI_TIMEOUT", 240.0),
+                        default_headers=self.openai_config.get(
+                            "OPENAI_DEFAULT_HEADERS", None
+                        ),
                     )
             except openai.OpenAIError as e:
                 raise LLMError(f"Unable to initialize OpenAI client: {str(e)}")

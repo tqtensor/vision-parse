@@ -9,6 +9,7 @@ from .utils import get_device_config
 from .llm import LLM
 import nest_asyncio
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 nest_asyncio.apply()
@@ -51,6 +52,7 @@ class VisionParser:
         image_mode: Literal["url", "base64", None] = None,
         custom_prompt: Optional[str] = None,
         detailed_extraction: bool = False,
+        extraction_complexity: bool = False,  # Deprecated Parameter
         enable_concurrency: bool = False,
         **kwargs: Any,
     ):
@@ -58,6 +60,19 @@ class VisionParser:
         self.page_config = page_config or PDFPageConfig()
         self.device, self.num_workers = get_device_config()
         self.enable_concurrency = enable_concurrency
+
+        if extraction_complexity:
+            if not detailed_extraction:
+                detailed_extraction = True
+                warnings.warn(
+                    "`extraction_complexity` is deprecated, and was renamed to `detailed_extraction`.",
+                    DeprecationWarning,
+                )
+
+            else:
+                raise ValueError(
+                    "`extraction_complexity` is deprecated, and was renamed to `detailed_extraction`. Please use `detailed_extraction` instead."
+                )
 
         self.llm = LLM(
             model_name=model_name,
