@@ -2,16 +2,14 @@
 
 Your task is to analyze the given image and extract textual content in markdown format.
 
-{% if confidence_score_text is defined and confidence_score_text is number %}
-{% if confidence_score_text > 0.6 %}
+{% if confidence_score_text is defined and confidence_score_text|float > 0.6 %}
 - Verify if the extracted text matches with the content in the image:\n\n```markdown\n{{ extracted_text|escape|trim }}\n```\n\n
 - Ensure markdown text formatting for the extracted text is applied properly by analyzing the image.
 - Strictly do not change any content in the original extracted text while applying markdown formatting and do not repeat the extracted text.
 {% else %}
 - Analyze this image carefully and extract all the content from the provided image in markdown format.
 - Ensure markdown text formatting for extracted text is applied properly by analyzing the image.
-- Strictly do not change any content in the original extracted text while applying markdown formatting.
-{% endif %}
+- Strictly do not change any content in the original extracted text while applying markdown formatting and do not repeat the extracted text.
 {% endif %}
 
 {% if tables_detected is defined and tables_detected|string == "Yes" %}
@@ -32,7 +30,7 @@ Your task is to analyze the given image and extract textual content in markdown 
 - Strictly do not generate code fences or backticks like ``` or ```markdown.
 
 {% if custom_prompt is defined and custom_prompt is not none %}
-{{ custom_prompt }}
+{{ custom_prompt|string }}
 {% endif %}
 
 {% endautoescape %}

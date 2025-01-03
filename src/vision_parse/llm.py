@@ -272,7 +272,7 @@ class LLM:
                     tables_detected=json_response.tables_detected,
                     latex_equations_detected=json_response.latex_equations_detected,
                     confidence_score_text=float(json_response.confidence_score_text),
-                    custom_prompt=self.custom_prompt,
+                    custom_prompt=str(self.custom_prompt),
                 )
 
             except Exception:
@@ -285,9 +285,9 @@ class LLM:
             prompt = self._md_prompt_template.render(
                 extracted_text="",
                 tables_detected="Yes",
-                latex_equations_detected="Yes",
+                latex_equations_detected="No",
                 confidence_score_text=0.0,
-                custom_prompt=self.custom_prompt,
+                custom_prompt=str(self.custom_prompt),
             )
 
         markdown_content = await self._get_response(
