@@ -9,5 +9,9 @@ wheels/
 .pytest_cache/
 .DS_Store
 
+# Environment variables
+.env
+.env.*
+
 # Virtual environments
 .venv
