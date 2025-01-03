@@ -126,7 +126,7 @@ def main():
         benchmark_parser("Vision Parse", vision_parse_func, pdf_path, ground_truth)
     )
     results.append(
-        benchmark_parser("Markitdown", markitdown_func, pdf_path, ground_truth)
+        benchmark_parser("MarkItDown", markitdown_func, pdf_path, ground_truth)
     )
 
     # Save results to file
