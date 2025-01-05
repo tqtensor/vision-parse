@@ -151,14 +151,20 @@ class LLM:
                             self.ollama_config.get("OLLAMA_NUM_GPU", 1)
                         )
                         os.environ["OLLAMA_NUM_THREAD"] = str(
-                            self.ollama_config.get("OLLAMA_NUM_THREAD", self.num_workers)
+                            self.ollama_config.get(
+                                "OLLAMA_NUM_THREAD", self.num_workers
+                            )
                         )
                         os.environ["OLLAMA_NUM_PARALLEL"] = str(
-                            self.ollama_config.get("OLLAMA_NUM_PARALLEL", self.num_workers * 8)
+                            self.ollama_config.get(
+                                "OLLAMA_NUM_PARALLEL", self.num_workers * 8
+                            )
                         )
                     else:
                         os.environ["OLLAMA_NUM_THREAD"] = str(
-                            self.ollama_config.get("OLLAMA_NUM_THREAD", self.num_workers)
+                            self.ollama_config.get(
+                                "OLLAMA_NUM_THREAD", self.num_workers
+                            )
                         )
                         os.environ["OLLAMA_NUM_PARALLEL"] = str(
                             self.ollama_config.get(
