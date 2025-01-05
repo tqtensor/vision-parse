@@ -122,8 +122,8 @@ class LLM:
                 )
 
             try:
-                os.environ["OLLAMA_KEEP_ALIVE"] = self.ollama_config.get(
-                    "OLLAMA_KEEP_ALIVE", "-1"
+                os.environ["OLLAMA_KEEP_ALIVE"] = str(
+                    self.ollama_config.get("OLLAMA_KEEP_ALIVE", -1)
                 )
                 if self.enable_concurrency:
                     self.aclient = ollama.AsyncClient(
@@ -133,31 +133,37 @@ class LLM:
                         timeout=self.ollama_config.get("OLLAMA_REQUEST_TIMEOUT", 240.0),
                     )
                     if self.device == "cuda":
-                        os.environ["OLLAMA_NUM_GPU"] = self.ollama_config.get(
-                            "OLLAMA_NUM_GPU", str(self.num_workers // 2)
+                        os.environ["OLLAMA_NUM_GPU"] = str(
+                            self.ollama_config.get(
+                                "OLLAMA_NUM_GPU", self.num_workers // 2
+                            )
                         )
-                        os.environ["OLLAMA_NUM_PARALLEL"] = self.ollama_config.get(
-                            "OLLAMA_NUM_PARALLEL", str(self.num_workers * 8)
+                        os.environ["OLLAMA_NUM_PARALLEL"] = str(
+                            self.ollama_config.get(
+                                "OLLAMA_NUM_PARALLEL", self.num_workers * 8
+                            )
                         )
-                        os.environ["OLLAMA_GPU_LAYERS"] = self.ollama_config.get(
-                            "OLLAMA_GPU_LAYERS", "all"
+                        os.environ["OLLAMA_GPU_LAYERS"] = str(
+                            self.ollama_config.get("OLLAMA_GPU_LAYERS", "all")
                         )
                     elif self.device == "mps":
-                        os.environ["OLLAMA_NUM_GPU"] = self.ollama_config.get(
-                            "OLLAMA_NUM_GPU", "1"
+                        os.environ["OLLAMA_NUM_GPU"] = str(
+                            self.ollama_config.get("OLLAMA_NUM_GPU", 1)
                         )
-                        os.environ["OLLAMA_NUM_THREAD"] = self.ollama_config.get(
-                            "OLLAMA_NUM_THREAD", str(self.num_workers)
+                        os.environ["OLLAMA_NUM_THREAD"] = str(
+                            self.ollama_config.get("OLLAMA_NUM_THREAD", self.num_workers)
                         )
-                        os.environ["OLLAMA_NUM_PARALLEL"] = self.ollama_config.get(
-                            "OLLAMA_NUM_PARALLEL", str(self.num_workers * 8)
+                        os.environ["OLLAMA_NUM_PARALLEL"] = str(
+                            self.ollama_config.get("OLLAMA_NUM_PARALLEL", self.num_workers * 8)
                         )
                     else:
-                        os.environ["OLLAMA_NUM_THREAD"] = self.ollama_config.get(
-                            "OLLAMA_NUM_THREAD", str(self.num_workers)
+                        os.environ["OLLAMA_NUM_THREAD"] = str(
+                            self.ollama_config.get("OLLAMA_NUM_THREAD", self.num_workers)
                         )
-                        os.environ["OLLAMA_NUM_PARALLEL"] = self.ollama_config.get(
-                            "OLLAMA_NUM_PARALLEL", str(self.num_workers * 10)
+                        os.environ["OLLAMA_NUM_PARALLEL"] = str(
+                            self.ollama_config.get(
+                                "OLLAMA_NUM_PARALLEL", self.num_workers * 10
+                            )
                         )
                 else:
                     self.client = ollama.Client(
