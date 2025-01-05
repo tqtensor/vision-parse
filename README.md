@@ -103,8 +103,8 @@ parser = VisionParser(
     custom_prompt=custom_prompt,
     detailed_extraction=True,
     ollama_config={
-        "OLLAMA_NUM_PARALLEL": "8",
-        "OLLAMA_REQUEST_TIMEOUT": "240.0",
+        "OLLAMA_NUM_PARALLEL": 8,
+        "OLLAMA_REQUEST_TIMEOUT": 240,
     },
     enable_concurrency=True,
 )
