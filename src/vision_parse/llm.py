@@ -181,6 +181,46 @@ class LLM:
             except Exception as e:
                 raise LLMError(f"Unable to initialize Ollama client: {str(e)}")
 
+        #support azure openai
+        elif self.provider == "openai" and os.getenv("AZURE_OPENAI_API_KEY"):
+            try:
+                from openai import AzureOpenAI,AsyncAzureOpenAI
+            except ImportError:
+                raise ImportError(
+                    "OpenAI is not installed. Please install it using pip install 'vision-parse[openai]'."
+                )
+            
+            try:
+                endpoint = os.getenv("AZURE_ENDPOINT_URL", "")  
+                deployment = os.getenv("AZURE_DEPLOYMENT_NAME", "")  
+                subscription_key = os.getenv("AZURE_OPENAI_API_KEY", "") 
+                if not endpoint or not deployment or not subscription_key:
+                    raise LLMError(f"Set env  AZURE_ENDPOINT_URL and AZURE_OPENAI_API_KEY and AZURE_OPENAI_API_KEY")
+
+                api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-08-01-preview")  
+                self.model_name = deployment
+            
+                # Initialize Azure OpenAI client with key-based authentication    
+                
+                if self.enable_concurrency:
+                    self.aclient = AsyncAzureOpenAI(  
+                    azure_endpoint=endpoint,  
+                    api_key=subscription_key,  
+                    api_version=api_version,  
+                    )
+                else:
+                    self.client = AzureOpenAI(  
+                    azure_endpoint=endpoint,  
+                    api_key=subscription_key,  
+                    api_version=api_version,  
+                    )
+
+            except openai.OpenAIError as e:
+                raise LLMError(f"Unable to initialize Azure OpenAI client: {str(e)}")
+            
+
+
+
         elif self.provider == "openai":
             try:
                 import openai
