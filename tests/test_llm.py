@@ -183,6 +183,7 @@ async def test_azure_openai_generate_markdown(
     MockAsyncAzureOpenAI, sample_base64_image, mock_pixmap
 ):
     """Test markdown generation using Azure OpenAI."""
+
     mock_client = AsyncMock()
     MockAsyncAzureOpenAI.return_value = mock_client
 
@@ -204,28 +205,29 @@ async def test_azure_openai_generate_markdown(
             )
         )
     ]
-    mock_client.beta.chat.completions.parse = AsyncMock(return_value=mock_parse)
 
     # Mock markdown conversion response
     mock_create = AsyncMock()
     mock_create.choices = [
         AsyncMock(message=AsyncMock(content="# Test Header\n\nTest content"))
     ]
-    mock_client.chat.completions.create = AsyncMock(return_value=mock_create)
+    # Set up side effects to return mock_parse first, then mock_create
+    mock_client.chat.completions.create = AsyncMock(
+        side_effect=[mock_parse, mock_create]
+    )
 
-    #activate Azure_Open_AI
-    os.environ['AZURE_ENDPOINT_URL'] = 'https://test.openai.azure.com/'
-    os.environ['AZURE_DEPLOYMENT_NAME'] = 'gpt-4o'
-    os.environ['AZURE_OPENAI_API_KEY'] = 'test-key' 
-    os.environ['AZURE_OPENAI_API_VERSION'] = '2024-08-01-preview' 
-
-    
     llm = LLM(
         model_name="gpt-4o",
+        api_key=None,
         temperature=0.7,
         top_p=0.7,
         ollama_config=None,
-        openai_config=None,
+        openai_config={
+            "AZURE_ENDPOINT_URL": "https://test.openai.azure.com/",
+            "AZURE_DEPLOYMENT_NAME": "gpt-4o",
+            "AZURE_OPENAI_API_KEY": "test-key",
+            "AZURE_OPENAI_API_VERSION": "2024-08-01-preview",
+        },
         gemini_config=None,
         image_mode=None,
         custom_prompt=None,
@@ -238,9 +240,7 @@ async def test_azure_openai_generate_markdown(
 
     assert isinstance(result, str)
     assert "Test content" in result
-    assert mock_client.beta.chat.completions.parse.called
     assert mock_client.chat.completions.create.called
-
 
 
 @pytest.mark.asyncio
