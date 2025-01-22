@@ -114,10 +114,11 @@ pdf_path = "path/to/your/document.pdf"
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
 
-### OpenAI or Gemini Model Usage
+### OpenAI or Azure-OpenAI or Gemini Model Usage
 
 ```python
 from vision_parse import VisionParser
+
 
 # Initialize parser with OpenAI model
 parser = VisionParser(
@@ -130,6 +131,21 @@ parser = VisionParser(
     enable_concurrency=True,
 )
 
+# Initialize parser with Azure OpenAI model
+parser = VisionParser(
+    model_name="gpt-4o",
+    image_mode="url",
+    detailed_extraction=True, # Set to True for more detailed extraction
+    enable_concurrency=True,
+    openai_config={
+        "AZURE_ENDPOINT_URL": "https://****.openai.azure.com/", # replace with your azure endpoint url
+        "AZURE_DEPLOYMENT_NAME": "*******", # replace with azure deployment name, if needed
+        "AZURE_OPENAI_API_KEY": "***********", # replace with your azure openai api key
+        "AZURE_OPENAI_API_VERSION": "2024-08-01-preview", # replace with latest azure openai api version
+    },
+)
+
+
 # Initialize parser with Google Gemini model
 parser = VisionParser(
     model_name="gemini-1.5-flash",
@@ -140,6 +156,10 @@ parser = VisionParser(
     detailed_extraction=True, # Set to True for more detailed extraction
     enable_concurrency=True,
 )
+
+
+
+
 ```
 
 ## ✅ Supported Models

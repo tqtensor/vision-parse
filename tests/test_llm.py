@@ -178,6 +178,72 @@ async def test_openai_generate_markdown(
 
 
 @pytest.mark.asyncio
+@patch("openai.AsyncAzureOpenAI")
+async def test_azure_openai_generate_markdown(
+    MockAsyncAzureOpenAI, sample_base64_image, mock_pixmap
+):
+    """Test markdown generation using Azure OpenAI."""
+
+    mock_client = AsyncMock()
+    MockAsyncAzureOpenAI.return_value = mock_client
+
+    # Mock structured analysis response
+    mock_parse = AsyncMock()
+    mock_parse.choices = [
+        AsyncMock(
+            message=AsyncMock(
+                content=json.dumps(
+                    {
+                        "text_detected": "Yes",
+                        "tables_detected": "No",
+                        "images_detected": "No",
+                        "latex_equations_detected": "No",
+                        "extracted_text": "Test content",
+                        "confidence_score_text": 0.9,
+                    }
+                )
+            )
+        )
+    ]
+
+    # Mock markdown conversion response
+    mock_create = AsyncMock()
+    mock_create.choices = [
+        AsyncMock(message=AsyncMock(content="# Test Header\n\nTest content"))
+    ]
+    # Set up side effects to return mock_parse first, then mock_create
+    mock_client.chat.completions.create = AsyncMock(
+        side_effect=[mock_parse, mock_create]
+    )
+
+    llm = LLM(
+        model_name="gpt-4o",
+        api_key=None,
+        temperature=0.7,
+        top_p=0.7,
+        ollama_config=None,
+        openai_config={
+            "AZURE_ENDPOINT_URL": "https://test.openai.azure.com/",
+            "AZURE_DEPLOYMENT_NAME": "gpt-4o",
+            "AZURE_OPENAI_API_KEY": "test-key",
+            "AZURE_OPENAI_API_VERSION": "2024-08-01-preview",
+        },
+        gemini_config=None,
+        image_mode=None,
+        custom_prompt=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
+    )
+    result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
+
+    assert isinstance(result, str)
+    assert "Test content" in result
+    assert mock_client.chat.completions.create.called
+
+
+@pytest.mark.asyncio
 @patch("google.generativeai.GenerativeModel")
 async def test_gemini_generate_markdown(
     MockGenerativeModel, sample_base64_image, mock_pixmap
