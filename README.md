@@ -35,16 +35,6 @@ pip install vision-parse
 **Install the additional dependencies for OpenAI or Gemini:**
 
 ```bash
-# For OpenAI support
-pip install 'vision-parse[openai]'
-```
-
-```bash
-# For Gemini support
-pip install 'vision-parse[gemini]'
-```
-
-```bash
 # To install all the additional dependencies
 pip install 'vision-parse[all]'
 ```
@@ -114,7 +104,7 @@ pdf_path = "path/to/your/document.pdf"
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
 
-### OpenAI or Azure-OpenAI or Gemini Model Usage
+### API Models Usage (OpenAI, Azure OpenAI, Gemini, DeepSeek)
 
 ```python
 from vision_parse import VisionParser
@@ -157,7 +147,16 @@ parser = VisionParser(
     enable_concurrency=True,
 )
 
-
+# Initialize parser with DeepSeek model
+parser = VisionParser(
+    model_name="deepseek-chat",
+    api_key="your-deepseek-api-key", # Get the DeepSeek API key from https://platform.deepseek.com/api_keys
+    temperature=0.7,
+    top_p=0.4,
+    image_mode="url",
+    detailed_extraction=True, # Set to True for more detailed extraction
+    enable_concurrency=True,
+)
 
 
 ```
@@ -166,9 +165,18 @@ parser = VisionParser(
 
 This package supports the following Vision LLM models:
 
-- OpenAI: `gpt-4o`, `gpt-4o-mini`
-- Google Gemini: `gemini-1.5-flash`, `gemini-2.0-flash-exp`, `gemini-1.5-pro`
-- Meta Llama and LLava from Ollama: `llava:13b`, `llava:34b`, `llama3.2-vision:11b`, `llama3.2-vision:70b`
+| **Model Name** | **Provider Name** |
+|------------|----------|
+| gpt-4o | OpenAI |
+| gpt-4o-mini | OpenAI |
+| gemini-1.5-flash | Google |
+| gemini-2.0-flash-exp | Google |
+| gemini-1.5-pro | Google |
+| llava:13b | Ollama |
+| llava:34b | Ollama |
+| llama3.2-vision:11b | Ollama |
+| llama3.2-vision:70b | Ollama |
+| deepseek-chat | DeepSeek |
 
 ## 📄 License
 
