@@ -8,11 +8,11 @@
 
 > 🚀 Parse PDF documents into beautifully formatted markdown content using state-of-the-art Vision Language Models - all with just a few lines of code!
 
-[Getting Started](#🚀-getting-started) •
-[Usage](#⌛️-usage) •
-[Supported Models](#✅-supported-models) •
-[Configuration Parameters](#🔧-configuration-parameters) •
-[Benchmarks](#📊-benchmarks)
+[Getting Started](#-getting-started) •
+[Usage](#-usage) •
+[Supported Models](#-supported-models) •
+[Configuration Parameters](#-configuration-parameters) •
+[Benchmarks](#-benchmarks)
 </div>
 
 ## 🎯 Introduction
