@@ -181,9 +181,11 @@ class LLM:
             except Exception as e:
                 raise LLMError(f"Unable to initialize Ollama client: {str(e)}")
 
-        elif self.provider == "openai":
+        elif self.provider == "openai" or self.provider == "deepseek":
             #  support azure openai
-            if self.openai_config.get("AZURE_OPENAI_API_KEY"):
+            if self.provider == "openai" and self.openai_config.get(
+                "AZURE_OPENAI_API_KEY"
+            ):
                 try:
                     import openai
                     from openai import AzureOpenAI, AsyncAzureOpenAI
@@ -197,20 +199,17 @@ class LLM:
                         "AZURE_OPENAI_API_KEY"
                     )
                     azure_endpoint_url = self.openai_config.get("AZURE_ENDPOINT_URL")
-                    azure_deployment_name = self.openai_config.get(
-                        "AZURE_DEPLOYMENT_NAME"
-                    )
 
-                    if (
-                        not azure_endpoint_url
-                        or not azure_subscription_key
-                        or not azure_deployment_name
-                    ):
+                    if not azure_endpoint_url or not azure_subscription_key:
                         raise LLMError(
-                            "Set `AZURE_ENDPOINT_URL`, `AZURE_OPENAI_API_KEY` and `AZURE_DEPLOYMENT_NAME` environment variables in the openai config file"
+                            "Set `AZURE_ENDPOINT_URL` and `AZURE_OPENAI_API_KEY` environment variables in `openai_config` parameter"
                         )
 
-                    self.model_name = azure_deployment_name
+                    if self.openai_config.get("AZURE_DEPLOYMENT_NAME"):
+                        self.model_name = self.openai_config.get(
+                            "AZURE_DEPLOYMENT_NAME"
+                        )
+
                     api_version = self.openai_config.get(
                         "AZURE_OPENAI_API_VERSION", "2024-08-01-preview"
                     )
@@ -245,7 +244,11 @@ class LLM:
                     if self.enable_concurrency:
                         self.aclient = openai.AsyncOpenAI(
                             api_key=self.api_key,
-                            base_url=self.openai_config.get("OPENAI_BASE_URL", None),
+                            base_url=(
+                                self.openai_config.get("OPENAI_BASE_URL", None)
+                                if self.provider == "openai"
+                                else "https://api.deepseek.com"
+                            ),
                             max_retries=self.openai_config.get("OPENAI_MAX_RETRIES", 3),
                             timeout=self.openai_config.get("OPENAI_TIMEOUT", 240.0),
                             default_headers=self.openai_config.get(
@@ -255,7 +258,11 @@ class LLM:
                     else:
                         self.client = openai.OpenAI(
                             api_key=self.api_key,
-                            base_url=self.openai_config.get("OPENAI_BASE_URL", None),
+                            base_url=(
+                                self.openai_config.get("OPENAI_BASE_URL", None)
+                                if self.provider == "openai"
+                                else "https://api.deepseek.com"
+                            ),
                             max_retries=self.openai_config.get("OPENAI_MAX_RETRIES", 3),
                             timeout=self.openai_config.get("OPENAI_TIMEOUT", 240.0),
                             default_headers=self.openai_config.get(
@@ -466,24 +473,14 @@ class LLM:
 
             if self.enable_concurrency:
                 if structured:
-                    # response = await self.aclient.beta.chat.completions.parse(
-                    #     model=self.model_name,
-                    #     response_format=ImageDescription,
-                    #     messages=messages,
-                    #     temperature=0.0,
-                    #     top_p=0.4,
-                    #     **self.kwargs,
-                    # )
-                    # return response.choices[0].message.content
-
-                    # Check if Azure OpenAI is used
-                    if os.getenv("AZURE_OPENAI_API_KEY"):
+                    if os.getenv("AZURE_OPENAI_API_KEY") or self.provider == "deepseek":
                         response = await self.aclient.chat.completions.create(
                             model=self.model_name,
                             messages=messages,
                             temperature=0.0,
                             top_p=0.4,
                             response_format={"type": "json_object"},
+                            stream=False,
                             **self.kwargs,
                         )
                     else:
@@ -493,6 +490,7 @@ class LLM:
                             messages=messages,
                             temperature=0.0,
                             top_p=0.4,
+                            stream=False,
                             **self.kwargs,
                         )
                     return response.choices[0].message.content
@@ -502,27 +500,19 @@ class LLM:
                     messages=messages,
                     temperature=self.temperature,
                     top_p=self.top_p,
+                    stream=False,
                     **self.kwargs,
                 )
             else:
                 if structured:
-                    # response = self.client.beta.chat.completions.parse(
-                    #     model=self.model_name,
-                    #     response_format=ImageDescription,
-                    #     messages=messages,
-                    #     temperature=0.0,
-                    #     top_p=0.4,
-                    #     **self.kwargs,
-                    # )
-                    # return response.choices[0].message.content
-
-                    if os.getenv("AZURE_OPENAI_API_KEY"):
+                    if os.getenv("AZURE_OPENAI_API_KEY") or self.provider == "deepseek":
                         response = self.client.chat.completions.create(
                             model=self.model_name,
                             messages=messages,
                             temperature=0.0,
                             top_p=0.4,
                             response_format={"type": "json_object"},
+                            stream=False,
                             **self.kwargs,
                         )
                     else:
@@ -532,6 +522,7 @@ class LLM:
                             messages=messages,
                             temperature=0.0,
                             top_p=0.4,
+                            stream=False,
                             **self.kwargs,
                         )
                     return response.choices[0].message.content
@@ -541,6 +532,7 @@ class LLM:
                     messages=messages,
                     temperature=self.temperature,
                     top_p=self.top_p,
+                    stream=False,
                     **self.kwargs,
                 )
 
