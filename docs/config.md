@@ -11,7 +11,7 @@ Pass these configuration settings to `ollama_config` parameter while initializin
 | OLLAMA_NUM_GPU | Number of GPUs to use if available |
 | OLLAMA_NUM_THREAD | Number of CPU threads to use |
 | OLLAMA_KEEP_ALIVE | Keep-alive timeout for the Ollama server (by default, it's set to -1) |
-| OLLAMA_HOST | Host URL for the Ollama server (by default, it's set to "http://localhost:11434") |
+| OLLAMA_HOST | Host URL for the Ollama server (by default, it's set to http://localhost:11434 |
 | OLLAMA_GPU_LAYERS | Number of layers to use if GPU is available |
 
 
