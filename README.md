@@ -11,7 +11,7 @@
 [Getting Started](#-getting-started) •
 [Usage](#-usage) •
 [Supported Models](#-supported-models) •
-[Configuration Parameters](#-configuration-parameters) •
+[Parameters](#-customization-parameters) •
 [Benchmarks](#-benchmarks)
 </div>
 
@@ -55,11 +55,11 @@ pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-pa
 ```
 
 ### Setting up Ollama (Optional)
-See [examples/ollama_setup.md](examples/ollama_setup.md) on how to setup Ollama locally.
+See [docs/ollama_setup.md](docs/ollama_setup.md) on how to setup Ollama locally.
 
-⚠️ **Warning**: While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex documents, consider using API-based models like OpenAI or Gemini.
+⚠️ **Warning**: While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex layouts in PDF documents, consider using API-based models like OpenAI or Gemini.
 
-## ⌛️ Usage
+## 📚 Usage
 
 ### Basic Example Usage
 
@@ -77,7 +77,7 @@ parser = VisionParser(
 )
 
 # Convert PDF to markdown
-pdf_path = "path/to/your/document.pdf" # local path to your pdf file
+pdf_path = "input_document.pdf" # local path to your pdf file
 markdown_pages = parser.convert_pdf(pdf_path)
 
 # Process results
@@ -111,9 +111,11 @@ parser = VisionParser(
 )
 
 # Convert PDF to markdown
-pdf_path = "path/to/your/document.pdf"
+pdf_path = "input_document.pdf" # local path to your pdf file
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
+
+Note: Please refer to [docs/faq.md](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
 
 ### API Models Usage (OpenAI, Azure OpenAI, Gemini, DeepSeek)
 
@@ -168,8 +170,6 @@ parser = VisionParser(
     detailed_extraction=True, # Set to True for more detailed extraction
     enable_concurrency=True,
 )
-
-
 ```
 
 ## ✅ Supported Models
@@ -189,9 +189,9 @@ This package supports the following Vision LLM models:
 | llama3.2-vision:70b | Ollama |
 | deepseek-chat | DeepSeek |
 
-## 🔧 Configuration Parameters
+## 🔧 Customization Parameters
 
-Vision Parse offers several configuration parameters to enhance document processing:
+Vision Parse offers several customization parameters to enhance document processing:
 
 | **Parameter** | **Description** | **Value Type** |
 |:---------:|:-----------:|:-------------:|
@@ -203,6 +203,8 @@ Vision Parse offers several configuration parameters to enhance document process
 | image_mode | Sets the image output format for the model i.e. if you want image url in markdown content or base64 encoded image | str |
 | detailed_extraction | Enable advanced content extraction to extract complex information such as LaTeX equations, tables, images, etc. | bool |
 | enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
+
+Note: For more details on custom configuration for Vision LLM providers, please refer to [docs/config.md](docs/config.md).
 
 ## 📊 Benchmarks
 
