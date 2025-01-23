@@ -1,10 +1,19 @@
-# Vision Parse
+<div align='center'>
+
+# Vision Parse ✨
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Author: Arun Brahma](https://img.shields.io/badge/Author-Arun%20Brahma-purple)](https://github.com/iamarunbrahma)
 [![PyPI version](https://img.shields.io/pypi/v/vision-parse.svg)](https://pypi.org/project/vision-parse/)
 
 > 🚀 Parse PDF documents into beautifully formatted markdown content using state-of-the-art Vision Language Models - all with just a few lines of code!
+
+[Getting Started](#🚀-getting-started) •
+[Usage](#⌛️-usage) •
+[Supported Models](#✅-supported-models) •
+[Configuration Parameters](#🔧-configuration-parameters) •
+[Benchmarks](#📊-benchmarks)
+</div>
 
 ## 🎯 Introduction
 
@@ -47,6 +56,8 @@ pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-pa
 
 ### Setting up Ollama (Optional)
 See [examples/ollama_setup.md](examples/ollama_setup.md) on how to setup Ollama locally.
+
+⚠️ **Warning**: While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex documents, consider using API-based models like OpenAI or Gemini.
 
 ## ⌛️ Usage
 
@@ -166,7 +177,7 @@ parser = VisionParser(
 This package supports the following Vision LLM models:
 
 | **Model Name** | **Provider Name** |
-|------------|----------|
+|:------------:|:----------:|
 | gpt-4o | OpenAI |
 | gpt-4o-mini | OpenAI |
 | gemini-1.5-flash | Google |
@@ -177,6 +188,56 @@ This package supports the following Vision LLM models:
 | llama3.2-vision:11b | Ollama |
 | llama3.2-vision:70b | Ollama |
 | deepseek-chat | DeepSeek |
+
+## 🔧 Configuration Parameters
+
+Vision Parse offers several configuration parameters to enhance document processing:
+
+| **Parameter** | **Description** | **Value Type** |
+|:---------:|:-----------:|:-------------:|
+| model_name | Name of the Vision LLM model to use | str |
+| custom_prompt | Define custom prompt for the model and it will be used as a suffix to the default prompt | str |
+| ollama_config | Specify custom configuration for Ollama client initialization | dict |
+| openai_config | Specify custom configuration for OpenAI, Azure OpenAI or DeepSeek client initialization | dict |
+| gemini_config | Specify custom configuration for Gemini client initialization | dict |
+| image_mode | Sets the image output format for the model i.e. if you want image url in markdown content or base64 encoded image | str |
+| detailed_extraction | Enable advanced content extraction to extract complex information such as LaTeX equations, tables, images, etc. | bool |
+| enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
+
+## 📊 Benchmarks
+
+I conducted benchmarking to evaluate Vision Parse's performance against MarkItDown and Nougat. The benchmarking was conducted using a curated dataset of 100 diverse machine learning papers from arXiv and used Marker library to generate the ground truth markdown formatted data.
+
+Since, there are no other ground truth data available for this task, I relied on Marker library to generate the ground truth markdown formatted data.
+
+### Results
+
+| Parser | Accuracy Score |
+|:-------:|:---------------:|
+| Vision Parse | 92% |
+| MarkItDown | 67% |
+| Nougat | 79% |
+
+Note: I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending upon the model you choose for Vision Parse and the model parameter settings.
+
+### Run Your Own Benchmarks
+
+You can benchmark the performance of Vision Parse on your machine against your own dataset. Run `scoring.py` to generate a detailed comparison report in the output directory.
+
+1. Install the development dependencies:
+```bash
+pip install -e ".[dev]"
+```
+
+2. Run the benchmark script:
+```bash
+# Change `pdf_path` to your pdf file path and `benchmark_results_path` to your desired output path
+python benchmarks/scoring.py
+```
+
+## 🤝 Contributing
+
+Contributions to Vision Parse are welcome! Whether you're fixing bugs, adding new features, or creating example notebooks, your help is appreciated. Please check out [contributing guidelines](CONTRIBUTING.md) for instructions on setting up the development environment, code style requirements, and the pull request process.
 
 ## 📄 License
 
