@@ -6,7 +6,7 @@
 [![Author: Arun Brahma](https://img.shields.io/badge/Author-Arun%20Brahma-purple)](https://github.com/iamarunbrahma)
 [![PyPI version](https://img.shields.io/pypi/v/vision-parse.svg)](https://pypi.org/project/vision-parse/)
 
-> 🚀 Parse PDF documents into beautifully formatted markdown content using state-of-the-art Vision Language Models - all with just a few lines of code!
+> Parse PDF documents into beautifully formatted markdown content using state-of-the-art Vision Language Models - all with just a few lines of code!
 
 [Getting Started](#-getting-started) •
 [Usage](#-usage) •
