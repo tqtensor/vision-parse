@@ -1,6 +1,6 @@
 # Docker Setup Guide for Vision Parse
 
-This guide explains how to set up Vision Parse using Docker on macOS and Linux systems.
+This guide explains setting up Vision Parse using Docker on macOS and Linux systems.
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ export GEMINI_API_KEY=your_gemini_api_key
 
 ## Running Docker Container
 
-1. If you have an Nvidia GPU, uncomment the following lines in your docker-compose.yml:
+1. If you have Nvidia GPU, uncomment the following lines in docker-compose.yml:
    ```yaml
    deploy:
      resources:
@@ -70,7 +70,7 @@ export GEMINI_API_KEY=your_gemini_api_key
 
 ## Troubleshooting
 
-1. If using Ollama-based models, ensure port 11434 is not being used by another service:
+1. If using Ollama-based models, ensure another service is not using port 11434:
 ```bash
 # macOS
 lsof -i :11434
