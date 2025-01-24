@@ -57,7 +57,8 @@ pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-pa
 ### Setting up Ollama (Optional)
 See [docs/ollama_setup.md](docs/ollama_setup.md) on how to setup Ollama locally.
 
-⚠️ **Note**: While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex layouts in PDF documents, consider using API-based models like OpenAI or Gemini.
+> [!IMPORTANT]
+> While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex layouts in PDF documents, consider using API-based models like OpenAI or Gemini.
 
 ### Setting up Vision Parse with Docker (Optional)
 See [docs/docker_setup.md](docs/docker_setup.md) on how to setup Vision Parse with Docker.
