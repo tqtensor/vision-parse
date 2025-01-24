@@ -211,9 +211,9 @@ Note: For more details on custom model configuration i.e. `openai_config`, `gemi
 
 ## 📊 Benchmarks
 
-I conducted benchmarking to evaluate Vision Parse's performance against MarkItDown and Nougat. The benchmarking was conducted using a curated dataset of 100 diverse machine learning papers from arXiv and used Marker library to generate the ground truth markdown formatted data.
+I conducted benchmarking to evaluate Vision Parse's performance against MarkItDown and Nougat. The benchmarking was conducted using a curated dataset of 100 diverse machine learning papers from arXiv and used the Marker library to generate the ground truth markdown formatted data.
 
-Since, there are no other ground truth data available for this task, I relied on Marker library to generate the ground truth markdown formatted data.
+Since there are no other ground truth data available for this task, I relied on Marker library to generate the ground truth markdown formatted data.
 
 ### Results
 
@@ -223,7 +223,7 @@ Since, there are no other ground truth data available for this task, I relied on
 | MarkItDown | 67% |
 | Nougat | 79% |
 
-Note: I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending upon the model you choose for Vision Parse and the model parameter settings.
+Note: I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending on the model you choose for Vision Parse and the model parameter settings.
 
 ### Run Your Own Benchmarks
 
