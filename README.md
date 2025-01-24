@@ -118,7 +118,7 @@ pdf_path = "input_document.pdf" # local path to your pdf file
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
 
-Note: Please refer to [docs/faq.md](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
+**Note**: Please refer to [docs/faq.md](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
 
 ### API Models Usage (OpenAI, Azure OpenAI, Gemini, DeepSeek)
 
