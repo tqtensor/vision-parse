@@ -4,7 +4,7 @@ lint:
 	ruff check . --fix
 
 format-nb:
-	black --ipynb docs/examples/*.ipynb
+	black --ipynb **/**/*.ipynb
 
 format: format-nb
 	black .
