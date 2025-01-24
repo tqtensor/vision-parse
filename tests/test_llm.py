@@ -327,7 +327,9 @@ async def test_deepseek_generate_markdown(
         AsyncMock(message=AsyncMock(content="# Test Header\n\nTest content"))
     ]
     # Set up side effects to return mock_parse first, then mock_create
-    mock_client.chat.completions.create = AsyncMock(side_effect=[mock_parse, mock_create])
+    mock_client.chat.completions.create = AsyncMock(
+        side_effect=[mock_parse, mock_create]
+    )
 
     llm = LLM(
         model_name="deepseek-chat",
