@@ -1808,7 +1808,7 @@ wheels = [
 
 [[package]]
 name = "vision-parse"
-version = "0.1.12.dev14+g1f1ea65.d20250124"
+version = "0.1.12.dev15+g595bb42"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
