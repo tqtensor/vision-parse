@@ -61,11 +61,11 @@ gemini = [
     "google-generativeai==0.8.3",
 ]
 openai = [
-    "openai>=1.59.8",
+    "openai==1.59.8",
 ]
 all = [
     "google-generativeai==0.8.3",
-    "openai>=1.59.8",
+    "openai==1.59.8",
 ]
 
 [tool.hatch.build.targets.wheel]

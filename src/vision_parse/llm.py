@@ -306,7 +306,7 @@ class LLM:
     ):
         if self.provider == "ollama":
             return await self._ollama(base64_encoded, prompt, structured)
-        elif self.provider == "openai":
+        elif self.provider == "openai" or self.provider == "deepseek":
             return await self._openai(base64_encoded, prompt, structured)
         elif self.provider == "gemini":
             return await self._gemini(base64_encoded, prompt, structured)
