@@ -227,7 +227,7 @@ Note: I used gpt-4o model for Vision Parse to extract markdown content from the 
 
 ### Run Your Own Benchmarks
 
-You can benchmark the performance of Vision Parse on your machine against your own dataset. Run `scoring.py` to generate a detailed comparison report in the output directory.
+You can benchmark the performance of Vision Parse on your machine using your own dataset. Run `scoring.py` to generate a detailed comparison report in the output directory.
 
 1. Install packages from requirements.txt:
 ```bash
