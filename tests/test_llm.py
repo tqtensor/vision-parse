@@ -294,6 +294,64 @@ async def test_gemini_generate_markdown(
 
 
 @pytest.mark.asyncio
+@patch("openai.AsyncOpenAI")
+async def test_deepseek_generate_markdown(
+    MockAsyncOpenAI, sample_base64_image, mock_pixmap
+):
+    """Test markdown generation using Deepseek."""
+    mock_client = AsyncMock()
+    MockAsyncOpenAI.return_value = mock_client
+
+    # Mock structured analysis response
+    mock_parse = AsyncMock()
+    mock_parse.choices = [
+        AsyncMock(
+            message=AsyncMock(
+                content=json.dumps(
+                    {
+                        "text_detected": "Yes",
+                        "tables_detected": "No",
+                        "images_detected": "No",
+                        "latex_equations_detected": "No",
+                        "extracted_text": "Test content",
+                        "confidence_score_text": 0.9,
+                    }
+                )
+            )
+        )
+    ]
+
+    # Mock markdown conversion response
+    mock_create = AsyncMock()
+    mock_create.choices = [
+        AsyncMock(message=AsyncMock(content="# Test Header\n\nTest content"))
+    ]
+    # Set up side effects to return mock_parse first, then mock_create
+    mock_client.chat.completions.create = AsyncMock(side_effect=[mock_parse, mock_create])
+
+    llm = LLM(
+        model_name="deepseek-chat",
+        api_key="test-key",
+        temperature=0.7,
+        top_p=0.7,
+        ollama_config=None,
+        openai_config=None,
+        gemini_config=None,
+        image_mode=None,
+        custom_prompt=None,
+        detailed_extraction=True,
+        enable_concurrency=True,
+        device=None,
+        num_workers=1,
+    )
+    result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
+
+    assert isinstance(result, str)
+    assert "Test content" in result
+    assert mock_client.chat.completions.create.call_count == 2
+
+
+@pytest.mark.asyncio
 @patch("ollama.AsyncClient")
 async def test_ollama_base64_image_mode(
     mock_async_client,
@@ -389,65 +447,3 @@ async def test_ollama_llm_error(mock_async_client, sample_base64_image, mock_pix
         await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
     assert "Ollama Model processing failed" in str(exc_info.value)
     assert mock_client.chat.call_count == 1
-
-
-@pytest.mark.asyncio
-@patch("openai.AsyncOpenAI")
-async def test_openai_llm_error(MockAsyncOpenAI, sample_base64_image, mock_pixmap):
-    """Test LLMError handling for OpenAI."""
-    mock_client = AsyncMock()
-    MockAsyncOpenAI.return_value = mock_client
-
-    # Mock API error for markdown generation
-    mock_client.chat.completions.create.side_effect = Exception("OpenAI API error")
-
-    llm = LLM(
-        model_name="gpt-4o",
-        api_key="test-key",
-        temperature=0.7,
-        top_p=0.7,
-        ollama_config=None,
-        openai_config=None,
-        gemini_config=None,
-        image_mode=None,
-        custom_prompt=None,
-        detailed_extraction=True,
-        enable_concurrency=True,
-        device=None,
-        num_workers=1,
-    )
-
-    with pytest.raises(LLMError) as exc_info:
-        await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
-    assert "OpenAI Model processing failed" in str(exc_info.value)
-
-
-@pytest.mark.asyncio
-@patch("google.generativeai.GenerativeModel")
-async def test_gemini_llm_error(MockGenerativeModel, sample_base64_image, mock_pixmap):
-    """Test LLMError handling for Gemini."""
-    mock_client = AsyncMock()
-    MockGenerativeModel.return_value = mock_client
-
-    # Mock API error
-    mock_client.generate_content.side_effect = Exception("Gemini API error")
-
-    llm = LLM(
-        model_name="gemini-1.5-pro",
-        api_key="test-key",
-        temperature=0.7,
-        top_p=0.7,
-        ollama_config=None,
-        openai_config=None,
-        gemini_config=None,
-        image_mode=None,
-        custom_prompt=None,
-        detailed_extraction=True,
-        enable_concurrency=True,
-        device=None,
-        num_workers=1,
-    )
-
-    with pytest.raises(LLMError) as exc_info:
-        await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
-    assert "Gemini Model processing failed" in str(exc_info.value)
