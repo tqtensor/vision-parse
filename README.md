@@ -57,7 +57,7 @@ pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-pa
 ### Setting up Ollama (Optional)
 See [docs/ollama_setup.md](docs/ollama_setup.md) on how to setup Ollama locally.
 
-⚠️ **Warning**: While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex layouts in PDF documents, consider using API-based models like OpenAI or Gemini.
+⚠️ **Note**: While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex layouts in PDF documents, consider using API-based models like OpenAI or Gemini.
 
 ### Setting up Vision Parse with Docker (Optional)
 See [docs/docker_setup.md](docs/docker_setup.md) on how to setup Vision Parse with Docker.
@@ -207,7 +207,7 @@ Vision Parse offers several customization parameters to enhance document process
 | detailed_extraction | Enable advanced content extraction to extract complex information such as LaTeX equations, tables, images, etc. | bool |
 | enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
 
-Note: For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [docs/config.md](docs/config.md).
+**Note**: For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [docs/config.md](docs/config.md).
 
 ## 📊 Benchmarks
 
@@ -223,7 +223,7 @@ Since there are no other ground truth data available for this task, I relied on 
 | MarkItDown | 67% |
 | Nougat | 79% |
 
-Note: I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending on the model you choose for Vision Parse and the model parameter settings.
+**Note**: I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending on the model you choose for Vision Parse and the model parameter settings.
 
 ### Run Your Own Benchmarks
 
