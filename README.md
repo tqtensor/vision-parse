@@ -118,8 +118,8 @@ parser = VisionParser(
 pdf_path = "input_document.pdf" # local path to your pdf file
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
-
-**Note**: Please refer to [docs/faq.md](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
+> [!TIP]
+> Please refer to [docs/faq.md](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
 
 ### API Models Usage (OpenAI, Azure OpenAI, Gemini, DeepSeek)
 
@@ -208,13 +208,14 @@ Vision Parse offers several customization parameters to enhance document process
 | detailed_extraction | Enable advanced content extraction to extract complex information such as LaTeX equations, tables, images, etc. | bool |
 | enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
 
-**Note**: For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [docs/config.md](docs/config.md).
+> [!TIP]
+> For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [docs/config.md](docs/config.md).
 
 ## 📊 Benchmarks
 
-I conducted benchmarking to evaluate Vision Parse's performance against MarkItDown and Nougat. The benchmarking was conducted using a curated dataset of 100 diverse machine learning papers from arXiv and used the Marker library to generate the ground truth markdown formatted data.
+I conducted benchmarking to evaluate Vision Parse's performance against MarkItDown and Nougat. The benchmarking was conducted using a curated dataset of 100 diverse machine learning papers from arXiv, and the Marker library was used to generate the ground truth markdown formatted data.
 
-Since there are no other ground truth data available for this task, I relied on Marker library to generate the ground truth markdown formatted data.
+Since there are no other ground truth data available for this task, I relied on the Marker library to generate the ground truth markdown formatted data.
 
 ### Results
 
@@ -224,7 +225,8 @@ Since there are no other ground truth data available for this task, I relied on 
 | MarkItDown | 67% |
 | Nougat | 79% |
 
-**Note**: I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending on the model you choose for Vision Parse and the model parameter settings.
+> [!NOTE]
+> I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending on the model you choose for Vision Parse and the model parameter settings.
 
 ### Run Your Own Benchmarks
 
