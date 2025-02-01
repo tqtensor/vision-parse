@@ -1,4 +1,3 @@
-from pathlib import Path
 import os
 import gradio as gr
 from dotenv import load_dotenv
@@ -12,11 +11,12 @@ load_dotenv()
 MAX_FILE_SIZE_MB: int = 5
 MAX_FILE_SIZE_BYTES: int = MAX_FILE_SIZE_MB * 1024 * 1024  # 5MB limit
 
+
 def process_pdf(pdf_file) -> str:
     """Process the uploaded PDF file using Vision Parse."""
     if pdf_file is None:
         return "Please upload a PDF file."
-        
+
     # Check file size
     file_size = os.path.getsize(pdf_file.name)
     if file_size > MAX_FILE_SIZE_BYTES:
@@ -33,7 +33,7 @@ def process_pdf(pdf_file) -> str:
             detailed_extraction=False,
         )
         result = vision_parser.convert_pdf(pdf_file.name)
-        
+
         # Format results
         if isinstance(result, list):
             return "\n\n".join(
@@ -41,13 +41,14 @@ def process_pdf(pdf_file) -> str:
                 for i, content in enumerate(result)
             )
         return result
-        
+
     except Exception as e:
         return f"Error processing PDF: {str(e)}"
 
+
 def create_demo() -> gr.Interface:
     """Create and configure the Gradio interface."""
-    
+
     # Define the interface
     demo = gr.Interface(
         fn=process_pdf,
@@ -113,9 +114,10 @@ def create_demo() -> gr.Interface:
             .dark {
                 color-scheme: dark;
             }
-        """
+        """,
     )
     return demo
+
 
 if __name__ == "__main__":
     demo = create_demo()
