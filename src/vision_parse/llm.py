@@ -490,7 +490,6 @@ class LLM:
                             messages=messages,
                             temperature=0.0,
                             top_p=0.4,
-                            stream=False,
                             **self.kwargs,
                         )
                     return response.choices[0].message.content
@@ -522,7 +521,6 @@ class LLM:
                             messages=messages,
                             temperature=0.0,
                             top_p=0.4,
-                            stream=False,
                             **self.kwargs,
                         )
                     return response.choices[0].message.content
