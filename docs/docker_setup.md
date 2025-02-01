@@ -7,32 +7,31 @@ This guide explains setting up Vision Parse using Docker on macOS and Linux syst
 - Docker and Docker Compose installed on your system
 - Nvidia GPU (optional, but recommended for better performance)
 
-### macOS
-1. Install Docker Desktop for Mac from [Docker Hub](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
-2. For Apple Silicon (M1/M2) users, ensure you're using ARM64 compatible images
+## Installation Steps
 
-### Linux
-1. Install Docker Engine:
-   ```bash
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   ```
-2. Install Docker Compose:
-   ```bash
-   sudo apt-get install docker-compose
-   ```
-3. For GPU support, install NVIDIA Container Toolkit:
-   ```bash
-   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+**macOS**
+- Download and install [Docker Desktop](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
+- Docker Compose is included in Docker Desktop
 
-   curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+**Linux**
+```bash
+# Install Docker Engine
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
 
-   sudo apt-get update
+# Install Docker Compose
+sudo apt-get install docker-compose
 
-   sudo apt-get install -y nvidia-container-toolkit
-   ```
+# For GPU Support (Optional)
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+```
 
 ## Environment Setup
 
@@ -67,26 +66,37 @@ export GEMINI_API_KEY=your_gemini_api_key
    # Start the container in detached mode
    docker compose up -d
    ```
+3. Verify the container is running:
+   ```bash
+   docker ps
+   ```
+
+## Running Vision Parse
+
+To run the Vision Parse application:
+
+```bash
+# Execute the python script inside the container
+docker compose exec vision-parse python docs/examples/gradio_app.py
+```
 
 ## Troubleshooting
 
-1. If using Ollama-based models, ensure another service is not using port 11434:
+1. If you're using Ollama-based models and encounter connection issues, check if port 11434 is already in use:
 ```bash
-# macOS
-lsof -i :11434
-
-# Linux
-sudo netstat -tulpn | grep 11434
+sudo lsof -i :11434
 ```
 
-2. Check container logs for any errors:
+2. Check container logs for errors:
 ```bash
 docker compose logs vision-parse
 ```
 
-## Stopping the Container
+## Managing the Container
 
-To stop the Vision Parse container:
 ```bash
+# Stop the container and preserve data
+docker compose stop
+
+# Stop and remove containers, networks
 docker compose down
-```

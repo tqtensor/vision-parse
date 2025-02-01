@@ -55,13 +55,13 @@ pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-pa
 ```
 
 ### Setting up Ollama (Optional)
-See [docs/ollama_setup.md](docs/ollama_setup.md) on how to setup Ollama locally.
+See [Ollama Setup Guide](docs/ollama_setup.md) on how to setup Ollama locally.
 
 > [!IMPORTANT]
 > While Ollama provides free local model hosting, please note that vision models from Ollama can be significantly slower in processing documents and may not produce optimal results when handling complex PDF documents. For better accuracy and performance with complex layouts in PDF documents, consider using API-based models like OpenAI or Gemini.
 
 ### Setting up Vision Parse with Docker (Optional)
-See [docs/docker_setup.md](docs/docker_setup.md) on how to setup Vision Parse with Docker.
+Check out [Docker Setup Guide](docs/docker_setup.md) on how to setup Vision Parse with Docker.
 
 ## 📚 Usage
 
@@ -119,7 +119,7 @@ pdf_path = "input_document.pdf" # local path to your pdf file
 markdown_pages = parser.convert_pdf(pdf_path)
 ```
 > [!TIP]
-> Please refer to [docs/faq.md](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
+> Please refer to [FAQs](docs/faq.md) for more details on how to improve the performance of locally hosted vision models.
 
 ### API Models Usage (OpenAI, Azure OpenAI, Gemini, DeepSeek)
 
@@ -209,7 +209,7 @@ Vision Parse offers several customization parameters to enhance document process
 | enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
 
 > [!TIP]
-> For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [docs/config.md](docs/config.md).
+> For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [Custom Model Configuration](docs/config.md).
 
 ## 📊 Benchmarks
 
