@@ -2,7 +2,7 @@
 
 ### Ollama Client:
 
-Pass these configuration settings to `ollama_config` parameter while initializing the VisionParser class.
+Pass the following configuration settings to `ollama_config` parameter while initializing the VisionParser class.
 
 | **Custom Configuration** | **Description** |
 |:---------:|:-----------:|
@@ -14,10 +14,11 @@ Pass these configuration settings to `ollama_config` parameter while initializin
 | OLLAMA_HOST | Host URL for the Ollama server (by default, it's set to http://localhost:11434 ) |
 | OLLAMA_GPU_LAYERS | Number of layers to use if GPU is available |
 
+For model-specific parameters (like temperature, top_p, etc.), please refer to the [Ollama Model Parameters documentation](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values). You can pass model-specific parameters as additional kwargs to the `VisionParser` class.
 
 ### OpenAI and DeepSeek Clients:
 
-Pass these configuration settings to `openai_config` parameter while initializing the VisionParser class.
+Pass the following configuration settings to `openai_config` parameter while initializing the VisionParser class.
 
 | **Custom Configuration** | **Description** |
 |:---------:|:-----------:|
@@ -26,10 +27,11 @@ Pass these configuration settings to `openai_config` parameter while initializin
 | OPENAI_TIMEOUT | Timeout for OpenAI requests (by default, it's set to 240.0) |
 | OPENAI_DEFAULT_HEADERS | Default headers for OpenAI requests (by default, it's set to None) |
 
+For model-specific parameters (like temperature, max_tokens, etc.), please refer to the [OpenAI Chat Completion API documentation](https://platform.openai.com/docs/api-reference/chat/create). You can pass model-specific parameters as additional kwargs to the `VisionParser` class.
 
 ### Azure OpenAI Client:
 
-Pass these configuration settings to `openai_config` parameter while initializing the VisionParser class.
+Pass the following configuration settings to `openai_config` parameter while initializing the VisionParser class.
 
 | **Custom Configuration** | **Description** |
 |:---------:|:-----------:|
