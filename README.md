@@ -209,7 +209,7 @@ Vision Parse offers several customization parameters to enhance document process
 | enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
 
 > [!TIP]
-> For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [Custom Model Configuration](docs/config.md).
+> For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [Model Configuration](docs/model_config.md).
 
 ## 📊 Benchmarks
 
