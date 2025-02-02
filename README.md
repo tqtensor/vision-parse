@@ -134,7 +134,7 @@ parser = VisionParser(
     temperature=0.7,
     top_p=0.4,
     image_mode="url",
-    detailed_extraction=True, # Set to True for more detailed extraction
+    detailed_extraction=False, # Set to True for more detailed extraction
     enable_concurrency=True,
 )
 
@@ -142,7 +142,7 @@ parser = VisionParser(
 parser = VisionParser(
     model_name="gpt-4o",
     image_mode="url",
-    detailed_extraction=True, # Set to True for more detailed extraction
+    detailed_extraction=False, # Set to True for more detailed extraction
     enable_concurrency=True,
     openai_config={
         "AZURE_ENDPOINT_URL": "https://****.openai.azure.com/", # replace with your azure endpoint url
@@ -160,7 +160,7 @@ parser = VisionParser(
     temperature=0.7,
     top_p=0.4,
     image_mode="url",
-    detailed_extraction=True, # Set to True for more detailed extraction
+    detailed_extraction=False, # Set to True for more detailed extraction
     enable_concurrency=True,
 )
 
@@ -171,7 +171,7 @@ parser = VisionParser(
     temperature=0.7,
     top_p=0.4,
     image_mode="url",
-    detailed_extraction=True, # Set to True for more detailed extraction
+    detailed_extraction=False, # Set to True for more detailed extraction
     enable_concurrency=True,
 )
 ```
