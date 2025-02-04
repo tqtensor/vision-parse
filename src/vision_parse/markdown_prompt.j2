@@ -3,8 +3,7 @@
 Your task is to analyze the given image and extract textual content in markdown format.
 
 {% if confidence_score_text is defined and confidence_score_text|float > 0.6 %}
-- Verify if the extracted text matches with the content in the image:\n\n```markdown\n{{ extracted_text|escape|trim }}\n```\n\n
-- Ensure markdown text formatting for the extracted text is applied properly by analyzing the image.
+- Compare if the extracted text matches with the image content:\n\n```markdown\n{{ extracted_text|escape|trim }}\n```\n\n
 - Strictly do not change any content in the original extracted text while applying markdown formatting and do not repeat the extracted text.
 {% else %}
 - Analyze this image carefully and extract all the content from the provided image in markdown format.
