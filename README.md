@@ -191,6 +191,7 @@ This package supports the following Vision LLM models:
 | llava:34b | Ollama |
 | llama3.2-vision:11b | Ollama |
 | llama3.2-vision:70b | Ollama |
+| deepseek-r1:32b | Ollama |
 | deepseek-chat | DeepSeek |
 
 ## 🔧 Customization Parameters
