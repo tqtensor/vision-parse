@@ -202,7 +202,6 @@ def main() -> None:
             finally:
                 st.session_state.is_processing = False
 
-
     # Display results
     if st.session_state.results:
         st.markdown("### Markdown Output")
