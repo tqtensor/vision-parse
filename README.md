@@ -51,7 +51,7 @@ pip install 'vision-parse[all]'
 **Install the package from source:**
 
 ```bash
-pip install 'git+https://github.com/iamarunbrahma/vision-parse.git#egg=vision-parse[all]'
+pip install 'git+https://github.com/tqtensor/vision-parse.git#egg=vision-parse[all]'
 ```
 
 ### Setting up Ollama (Optional)
@@ -180,34 +180,34 @@ parser = VisionParser(
 
 This package supports the following Vision LLM models:
 
-| **Model Name** | **Provider Name** |
-|:------------:|:----------:|
-| gpt-4o | OpenAI |
-| gpt-4o-mini | OpenAI |
-| gemini-1.5-flash | Google |
-| gemini-2.0-flash-exp | Google |
-| gemini-1.5-pro | Google |
-| llava:13b | Ollama |
-| llava:34b | Ollama |
-| llama3.2-vision:11b | Ollama |
-| llama3.2-vision:70b | Ollama |
-| deepseek-r1:32b | Ollama |
-| deepseek-chat | DeepSeek |
+|    **Model Name**    | **Provider Name** |
+| :------------------: | :---------------: |
+|        gpt-4o        |      OpenAI       |
+|     gpt-4o-mini      |      OpenAI       |
+|   gemini-1.5-flash   |      Google       |
+| gemini-2.0-flash-exp |      Google       |
+|    gemini-1.5-pro    |      Google       |
+|      llava:13b       |      Ollama       |
+|      llava:34b       |      Ollama       |
+| llama3.2-vision:11b  |      Ollama       |
+| llama3.2-vision:70b  |      Ollama       |
+|   deepseek-r1:32b    |      Ollama       |
+|    deepseek-chat     |     DeepSeek      |
 
 ## 🔧 Customization Parameters
 
 Vision Parse offers several customization parameters to enhance document processing:
 
-| **Parameter** | **Description** | **Value Type** |
-|:---------:|:-----------:|:-------------:|
-| model_name | Name of the Vision LLM model to use | str |
-| custom_prompt | Define custom prompt for the model and it will be used as a suffix to the default prompt | str |
-| ollama_config | Specify custom configuration for Ollama client initialization | dict |
-| openai_config | Specify custom configuration for OpenAI, Azure OpenAI or DeepSeek client initialization | dict |
-| gemini_config | Specify custom configuration for Gemini client initialization | dict |
-| image_mode | Sets the image output format for the model i.e. if you want image url in markdown content or base64 encoded image | str |
-| detailed_extraction | Enable advanced content extraction to extract complex information such as LaTeX equations, tables, images, etc. | bool |
-| enable_concurrency | Enable parallel processing of multiple pages in a PDF document in a single request | bool |
+|    **Parameter**    |                                                  **Description**                                                  | **Value Type** |
+| :-----------------: | :---------------------------------------------------------------------------------------------------------------: | :------------: |
+|     model_name      |                                        Name of the Vision LLM model to use                                        |      str       |
+|    custom_prompt    |             Define custom prompt for the model and it will be used as a suffix to the default prompt              |      str       |
+|    ollama_config    |                           Specify custom configuration for Ollama client initialization                           |      dict      |
+|    openai_config    |              Specify custom configuration for OpenAI, Azure OpenAI or DeepSeek client initialization              |      dict      |
+|    gemini_config    |                           Specify custom configuration for Gemini client initialization                           |      dict      |
+|     image_mode      | Sets the image output format for the model i.e. if you want image url in markdown content or base64 encoded image |      str       |
+| detailed_extraction |  Enable advanced content extraction to extract complex information such as LaTeX equations, tables, images, etc.  |      bool      |
+| enable_concurrency  |                Enable parallel processing of multiple pages in a PDF document in a single request                 |      bool      |
 
 > [!TIP]
 > For more details on custom model configuration i.e. `openai_config`, `gemini_config`, and `ollama_config`; please refer to [Model Configuration](docs/model_config.md).
@@ -220,11 +220,11 @@ Since there are no other ground truth data available for this task, I relied on 
 
 ### Results
 
-| Parser | Accuracy Score |
-|:-------:|:---------------:|
-| Vision Parse | 92% |
-| MarkItDown | 67% |
-| Nougat | 79% |
+|    Parser    | Accuracy Score |
+| :----------: | :------------: |
+| Vision Parse |      92%       |
+|  MarkItDown  |      67%       |
+|    Nougat    |      79%       |
 
 > [!NOTE]
 > I used gpt-4o model for Vision Parse to extract markdown content from the pdf documents. I have used model parameter settings as in `scoring.py` script. The above results may vary depending on the model you choose for Vision Parse and the model parameter settings.

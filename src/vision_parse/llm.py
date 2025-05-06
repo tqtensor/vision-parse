@@ -292,7 +292,9 @@ class LLM:
     def _get_provider_name(self, model_name: str) -> str:
         """Get the provider name for a given model name."""
         try:
-            return SUPPORTED_MODELS[model_name]
+            return SUPPORTED_MODELS[
+                "litellm/*" if "litellm" in model_name else model_name
+            ]
         except KeyError:
             supported_models = ", ".join(
                 f"'{model}' from {provider}"
