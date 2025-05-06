@@ -292,6 +292,10 @@ class LLM:
     def _get_provider_name(self, model_name: str) -> str:
         """Get the provider name for a given model name."""
         try:
+            if model_name.startswith("gpt"):
+                model_name = "gpt-4o"
+            elif model_name.startswith("gemini"):
+                model_name = "gemini-1.5-flash"
             return SUPPORTED_MODELS[model_name]
         except KeyError:
             supported_models = ", ".join(
