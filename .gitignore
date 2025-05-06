@@ -1,17 +1,17 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-.ruff_cache/
-.pytest_cache/
-.DS_Store
-
 # Environment variables
 .env
 .env.*
+.DS_Store
+
+# Python-generated files
+*.egg-info
+*.py[oc]
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+wheels/
 
 # Virtual environments
 .venv

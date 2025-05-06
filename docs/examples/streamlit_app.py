@@ -1,7 +1,8 @@
-from pathlib import Path
-from typing import Optional, Union, List
 import gc
 import os
+from pathlib import Path
+from typing import List, Optional, Union
+
 import pyperclip
 import streamlit as st
 from dotenv import load_dotenv

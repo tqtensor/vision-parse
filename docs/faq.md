@@ -15,7 +15,7 @@
 3. **The llama3.2-vision:11b model was hallucinating and unable to extract content accurately from the PDF document. How can I improve the extraction accuracy of locally hosted vision models?**
 
     To improve extraction accuracy with the llama3.2-vision:11b model:
-    
+
     - **Adjust Model Parameters**: Lower the `temperature` and `top_p` for more deterministic outputs and to reduce hallucinations.
     - **Define Custom Prompts**: By defining custom prompts according to your document structure, you can guide the model to extract content more accurately.
     - **Enable Detailed Extraction**: Enabling `detailed_extraction` will help the Vision LLM detect the presence of images, LaTeX equations, structured, and semi-structured tables, and then extract them with high accuracy.

@@ -1,15 +1,17 @@
-import fitz  # PyMuPDF library for PDF processing
-from pathlib import Path
-from typing import Optional, List, Dict, Union, Literal, Any
-from tqdm import tqdm
-import base64
-from pydantic import BaseModel
 import asyncio
-from .utils import get_device_config
-from .llm import LLM
-import nest_asyncio
+import base64
 import logging
 import warnings
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Union
+
+import fitz  # PyMuPDF library for PDF processing
+import nest_asyncio
+from pydantic import BaseModel
+from tqdm import tqdm
+
+from .llm import LLM
+from .utils import get_device_config
 
 logger = logging.getLogger(__name__)
 nest_asyncio.apply()

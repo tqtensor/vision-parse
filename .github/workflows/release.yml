@@ -48,4 +48,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           source .venv/bin/activate
-          twine upload dist/* 
+          twine upload dist/*

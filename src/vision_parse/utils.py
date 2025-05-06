@@ -1,11 +1,12 @@
-import fitz
-import numpy as np
-import cv2
 import base64
-from typing import List, Tuple, Literal, ClassVar
+import logging
 from dataclasses import dataclass
 from threading import Lock
-import logging
+from typing import ClassVar, List, Literal, Tuple
+
+import cv2
+import fitz
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +146,9 @@ class ImageData:
 
 def get_device_config() -> Tuple[Literal["cuda", "mps", "cpu"], int]:
     """Get optimal number of worker processes based on device."""
+    import os
     import platform
     import subprocess
-    import os
 
     try:
         nvidia_smi = subprocess.run(

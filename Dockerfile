@@ -40,4 +40,4 @@ esac\n\
 exec "$@"' > /start.sh && chmod +x /start.sh
 
 ENTRYPOINT ["/start.sh"]
-CMD ["tail", "-f", "/dev/null"] 
+CMD ["tail", "-f", "/dev/null"]

@@ -1,6 +1,8 @@
-import pytest
 from pathlib import Path
+
 import fitz  # PyMuPDF library for PDF handling
+import pytest
+
 from vision_parse.parser import PDFPageConfig, VisionParser
 
 

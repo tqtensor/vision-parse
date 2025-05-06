@@ -1,14 +1,16 @@
-from typing import Literal, Dict, Any, Union
-from pydantic import BaseModel
-from jinja2 import Template
-import re
-import fitz
-import os
-from tqdm import tqdm
-from .utils import ImageData
-from tenacity import retry, stop_after_attempt, wait_exponential
-from .constants import SUPPORTED_MODELS
 import logging
+import os
+import re
+from typing import Any, Dict, Literal, Union
+
+import fitz
+from jinja2 import Template
+from pydantic import BaseModel
+from tenacity import retry, stop_after_attempt, wait_exponential
+from tqdm import tqdm
+
+from .constants import SUPPORTED_MODELS
+from .utils import ImageData
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +190,7 @@ class LLM:
             ):
                 try:
                     import openai
-                    from openai import AzureOpenAI, AsyncAzureOpenAI
+                    from openai import AsyncAzureOpenAI, AzureOpenAI
                 except ImportError:
                     raise ImportError(
                         "OpenAI is not installed. Please install it using pip install 'vision-parse[openai]'."

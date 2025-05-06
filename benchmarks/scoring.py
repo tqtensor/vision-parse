@@ -1,12 +1,14 @@
 import os
-from pathlib import Path
-import nltk
-from nltk.translate.bleu_score import sentence_bleu
-from Levenshtein import distance
-from markitdown import MarkItDown
-from vision_parse import VisionParser
 import statistics
 from datetime import datetime
+from pathlib import Path
+
+import nltk
+from Levenshtein import distance
+from markitdown import MarkItDown
+from nltk.translate.bleu_score import sentence_bleu
+
+from vision_parse import VisionParser
 
 # Download required NLTK data
 nltk.download("punkt")

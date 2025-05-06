@@ -20,4 +20,3 @@ Generated on: 2025-01-03 16:15:01
 
 - Number of runs: 3
 - Individual accuracy scores: 0.52, 0.52, 0.52
-
