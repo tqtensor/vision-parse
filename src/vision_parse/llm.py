@@ -459,6 +459,9 @@ class LLM:
         self, base64_encoded: str, prompt: str, structured: bool = False
     ) -> Any:
         """Process base64-encoded image through OpenAI vision models."""
+        if "litellm" in self.model_name:
+            self.model_name = self.model_name.replace("litellm/", "")
+
         try:
             messages = [
                 {
