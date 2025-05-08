@@ -16,7 +16,16 @@ logger = logging.getLogger(__name__)
 
 
 class ImageDescription(BaseModel):
-    """Model Schema for image description."""
+    """Defines the schema for image description and analysis results.
+
+    Attributes:
+        text_detected (Literal["Yes", "No"]): Indicates whether text is present in the image.
+        tables_detected (Literal["Yes", "No"]): Indicates whether tables are present in the image.
+        images_detected (Literal["Yes", "No"]): Indicates whether embedded images are present.
+        latex_equations_detected (Literal["Yes", "No"]): Indicates whether LaTeX equations are present.
+        extracted_text (str): Contains the raw text extracted from the image.
+        confidence_score_text (float): Provides the confidence score for text extraction accuracy.
+    """
 
     text_detected: Literal["Yes", "No"]
     tables_detected: Literal["Yes", "No"]
@@ -27,13 +36,21 @@ class ImageDescription(BaseModel):
 
 
 class UnsupportedProviderError(BaseException):
-    """Custom exception for unsupported provider names"""
+    """Raises an error when the specified LLM provider is not supported.
+
+    This exception is raised when attempting to use a model from an unsupported
+    LLM provider or when the model name does not match any known provider prefix.
+    """
 
     pass
 
 
 class LLMError(BaseException):
-    """Custom exception for Vision LLM errors"""
+    """Raises an error when LLM processing encounters a failure.
+
+    This exception is raised when there are issues during LLM initialization,
+    API calls, or response processing.
+    """
 
     pass
 
@@ -82,7 +99,14 @@ class LLM:
         self._init_llm()
 
     def _init_llm(self) -> None:
-        """Initialize the LLM client using litellm."""
+        """Initializes the LLM client with litellm integration.
+
+        This method sets up the instructor client with appropriate completion mode
+        based on concurrency settings.
+
+        Raises:
+            LLMError: If client initialization fails.
+        """
         try:
             # Initialize instructor client
             self.client = instructor.patch(
@@ -93,7 +117,17 @@ class LLM:
             raise LLMError(f"Unable to initialize LLM client: {str(e)}")
 
     def _get_provider_name(self, model_name: str) -> str:
-        """Get the provider name for a given model name based on its prefix."""
+        """Determines the provider name based on the model name prefix.
+
+        Args:
+            model_name (str): The name of the model to check.
+
+        Returns:
+            str: The provider name (e.g., 'openai', 'gemini').
+
+        Raises:
+            UnsupportedProviderError: If the model name doesn't match any known provider.
+        """
         for provider, prefixes in PROVIDER_PREFIXES.items():
             if any(model_name.startswith(prefix) for prefix in prefixes):
                 return provider
@@ -107,7 +141,15 @@ class LLM:
         )
 
     def _get_model_params(self, structured: bool = False) -> Dict[str, Any]:
-        """Get model parameters based on provider and configuration."""
+        """Constructs model parameters based on provider and configuration.
+
+        Args:
+            structured (bool, optional): Whether to use structured output parameters.
+                Defaults to False.
+
+        Returns:
+            Dict[str, Any]: Dictionary containing model parameters for API calls.
+        """
         params = {
             "model": self.model_name,
             "temperature": 0.0 if structured else self.temperature,
@@ -156,7 +198,20 @@ class LLM:
     async def _get_response(
         self, base64_encoded: str, prompt: str, structured: bool = False
     ) -> Any:
-        """Get response from LLM using litellm and instructor."""
+        """Retrieves response from LLM using litellm and instructor.
+
+        Args:
+            base64_encoded (str): Base64 encoded image data.
+            prompt (str): The prompt to send to the LLM.
+            structured (bool, optional): Whether to use structured output.
+                Defaults to False.
+
+        Returns:
+            Any: The LLM response, either as structured JSON or raw text.
+
+        Raises:
+            LLMError: If LLM processing fails.
+        """
         try:
             messages = [
                 {
@@ -200,7 +255,19 @@ class LLM:
     async def generate_markdown(
         self, base64_encoded: str, pix: fitz.Pixmap, page_number: int
     ) -> Any:
-        """Generate markdown formatted text from a base64-encoded image using appropriate model provider."""
+        """Generates markdown formatted text from an image using the configured LLM provider.
+
+        This method handles both detailed and simple extraction modes, processes
+        embedded images if configured, and formats the output as markdown.
+
+        Args:
+            base64_encoded (str): Base64 encoded image data.
+            pix (fitz.Pixmap): The image pixmap for additional processing.
+            page_number (int): The page number being processed.
+
+        Returns:
+            Any: The generated markdown text, including any embedded images if configured.
+        """
         extracted_images = []
         if self.detailed_extraction:
             try:

@@ -1,14 +1,5 @@
 .PHONY: lint format test build release tag format-nb
 
-lint:
-	ruff check . --fix
-
-format-nb:
-	black --ipynb **/**/*.ipynb
-
-format: format-nb
-	black .
-
 test:
 	pytest -v --capture=no
 

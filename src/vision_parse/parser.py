@@ -5,7 +5,7 @@ import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
-import fitz  # PyMuPDF library for PDF processing
+import fitz
 import nest_asyncio
 from pydantic import BaseModel
 from tqdm import tqdm
@@ -18,28 +18,42 @@ nest_asyncio.apply()
 
 
 class PDFPageConfig(BaseModel):
-    """Configuration settings for PDF page conversion."""
+    """Configures settings for PDF page conversion.
 
-    dpi: int = 400  # Resolution for PDF to image conversion
-    color_space: str = "RGB"  # Color mode for image output
-    include_annotations: bool = True  # Include PDF annotations in conversion
-    preserve_transparency: bool = False  # Control alpha channel in output
+    Attributes:
+        dpi (int): Resolution for PDF to image conversion. Defaults to 400.
+        color_space (str): Color mode for image output. Defaults to "RGB".
+        include_annotations (bool): Includes PDF annotations in conversion. Defaults to True.
+        preserve_transparency (bool): Preserves alpha channel in output. Defaults to False.
+    """
+
+    dpi: int = 400
+    color_space: str = "RGB"
+    include_annotations: bool = True
+    preserve_transparency: bool = False
 
 
 class UnsupportedFileError(BaseException):
-    """Custom exception for handling unsupported file errors."""
+    """Exception raised when an unsupported file type is provided.
+
+    This exception is raised when attempting to process a file that is not a PDF.
+    """
 
     pass
 
 
 class VisionParserError(BaseException):
-    """Custom exception for handling Markdown Parser errors."""
+    """Exception raised when there is an error in the PDF to markdown conversion process.
+
+    This exception is raised when there are issues during the conversion of PDF pages
+    to markdown format, such as conversion failures or processing errors.
+    """
 
     pass
 
 
 class VisionParser:
-    """Convert PDF pages to base64-encoded images and then extract text from the images in markdown format."""
+    """Converts PDF pages to base64-encoded images and extracts text from the images in markdown format."""
 
     def __init__(
         self,
@@ -58,7 +72,7 @@ class VisionParser:
         enable_concurrency: bool = False,
         **kwargs: Any,
     ):
-        """Initialize parser with PDFPageConfig and LLM configuration."""
+        """Initializes parser with PDFPageConfig and LLM configuration."""
         self.page_config = page_config or PDFPageConfig()
         self.device, self.num_workers = get_device_config()
         self.enable_concurrency = enable_concurrency
@@ -94,7 +108,7 @@ class VisionParser:
         )
 
     def _calculate_matrix(self, page: fitz.Page) -> fitz.Matrix:
-        """Calculate transformation matrix for page conversion."""
+        """Calculates transformation matrix for page conversion."""
         # Calculate zoom factor based on target DPI
         zoom = self.page_config.dpi / 72
         matrix = fitz.Matrix(zoom * 2, zoom * 2)
@@ -106,7 +120,7 @@ class VisionParser:
         return matrix
 
     async def _convert_page(self, page: fitz.Page, page_number: int) -> str:
-        """Convert a single PDF page into base64-encoded PNG and extract markdown formatted text."""
+        """Converts a single PDF page into base64-encoded PNG and extracts markdown formatted text."""
         try:
             matrix = self._calculate_matrix(page)
 
@@ -132,7 +146,7 @@ class VisionParser:
                 pix = None
 
     async def _convert_pages_batch(self, pages: List[fitz.Page], start_idx: int):
-        """Process a batch of PDF pages concurrently."""
+        """Processes a batch of PDF pages concurrently."""
         try:
             tasks = []
             for i, page in enumerate(pages):
@@ -142,7 +156,7 @@ class VisionParser:
             await asyncio.sleep(0.5)
 
     def convert_pdf(self, pdf_path: Union[str, Path]) -> List[str]:
-        """Convert all pages in the given PDF file to markdown text."""
+        """Converts all pages in the given PDF file to markdown text."""
         pdf_path = Path(pdf_path)
         converted_pages = []
 

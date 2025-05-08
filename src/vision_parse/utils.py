@@ -1,5 +1,8 @@
 import base64
 import logging
+import os
+import platform
+import subprocess
 from dataclasses import dataclass
 from threading import Lock
 from typing import ClassVar, List, Literal, Tuple
@@ -12,20 +15,42 @@ logger = logging.getLogger(__name__)
 
 
 class ImageExtractionError(BaseException):
-    """Custom exception for handling Image Extraction errors."""
+    """Raises an error when image extraction or processing fails.
+
+    This exception is raised when there are issues during image detection,
+    processing, or validation steps.
+    """
 
     pass
 
 
 @dataclass
 class ImageData:
-    image_url: str  # URL path for extracted images
-    base64_encoded: str | None  # Base64 string if image_mode is base64, None otherwise
-    _lock: ClassVar[Lock] = Lock()  # Lock for thread safety
+    """Represents extracted image data with its associated metadata.
+
+    Attributes:
+        image_url (str): URL path for extracted images.
+        base64_encoded (str | None): Base64 string if image_mode is base64, None otherwise.
+        _lock (ClassVar[Lock]): Lock for thread safety during image processing.
+    """
+
+    image_url: str
+    base64_encoded: str | None
+    _lock: ClassVar[Lock] = Lock()
 
     @staticmethod
     def _prepare_image_for_detection(image: np.ndarray) -> np.ndarray:
-        """Process image to highlight potential image regions."""
+        """Processes image to highlight potential image regions.
+
+        Args:
+            image (np.ndarray): Input image in BGR format.
+
+        Returns:
+            np.ndarray: Processed binary image highlighting potential image regions.
+
+        Raises:
+            ImageExtractionError: If image processing fails.
+        """
         try:
             grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             smooth = cv2.GaussianBlur(grayscale, (5, 5), 0)
@@ -45,7 +70,19 @@ class ImageData:
     def _check_region_validity(
         region: np.ndarray, contour: np.ndarray, region_dims: tuple
     ) -> bool:
-        """Determine if region contains a valid image based on statistical properties."""
+        """Determines if region contains a valid image based on statistical properties.
+
+        Args:
+            region (np.ndarray): Image region to validate.
+            contour (np.ndarray): Contour of the region.
+            region_dims (tuple): Dimensions (width, height) of the region.
+
+        Returns:
+            bool: True if region contains a valid image, False otherwise.
+
+        Raises:
+            ImageExtractionError: If image validation fails.
+        """
         try:
             width, height = region_dims
             region_area = cv2.contourArea(contour) / (width * height)
@@ -72,7 +109,24 @@ class ImageData:
         page_number: int,
         min_dimensions: tuple = (100, 100),
     ) -> List["ImageData"]:
-        """Extract images with their coordinates and hash versions based on image_mode."""
+        """Extracts images from a PDF page with specified processing mode.
+
+        This method processes the page image to detect and extract embedded images,
+        validates them, and saves them according to the specified image mode.
+
+        Args:
+            pix (fitz.Pixmap): PDF page pixmap containing the image data.
+            image_mode (Literal["url", "base64", None]): Mode for image extraction.
+            page_number (int): Page number for image naming.
+            min_dimensions (tuple, optional): Minimum dimensions for valid images.
+                Defaults to (100, 100).
+
+        Returns:
+            List[ImageData]: List of extracted images with their metadata.
+
+        Raises:
+            ImageExtractionError: If image extraction or processing fails.
+        """
         with cls._lock:
             try:
                 min_width, min_height = min_dimensions
@@ -145,11 +199,15 @@ class ImageData:
 
 
 def get_device_config() -> Tuple[Literal["cuda", "mps", "cpu"], int]:
-    """Get optimal number of worker processes based on device."""
-    import os
-    import platform
-    import subprocess
+    """Determines optimal device configuration for processing.
 
+    This function checks available hardware (GPU, MPS, CPU) and returns
+    the appropriate device type and number of worker processes.
+
+    Returns:
+        Tuple[Literal["cuda", "mps", "cpu"], int]: Device type and optimal number
+            of worker processes.
+    """
     try:
         nvidia_smi = subprocess.run(
             ["nvidia-smi", "--query-gpu=gpu_name", "--format=csv,noheader"],
@@ -164,4 +222,5 @@ def get_device_config() -> Tuple[Literal["cuda", "mps", "cpu"], int]:
 
     if platform.system() == "Darwin" and platform.processor() == "arm":
         return "mps", 4
+
     return "cpu", max(2, (os.cpu_count() // 2))
