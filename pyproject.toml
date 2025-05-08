@@ -21,12 +21,13 @@ dependencies = [
   "jinja2>=3.0.0",
   "nest-asyncio>=1.6.0",
   "numpy>=2.0.0",
-  "ollama>=0.4.4",
   "opencv-python>=4.10.0.84",
   "pydantic>=2.0.0",
   "pymupdf>=1.22.0",
   "tenacity>=9.0.0",
-  "tqdm>=4.65.0"
+  "tqdm>=4.65.0",
+  "litellm>=1.0.0",
+  "instructor>=0.4.0"
 ]
 description = "Parse PDF documents into markdown formatted content using Vision LLMs"
 dynamic = ["version"]
@@ -60,6 +61,7 @@ dev = [
   "pre-commit>=4.2.0",
   "pytest>=8.3.4",
   "pytest-asyncio>=0.23.5",
+  "python-dotenv>=1.1.0",
   "ruff>=0.8.3",
   "toml-sort>=0.24.2",
   "twine>=6.0.1"
@@ -75,8 +77,8 @@ openai = [
 packages = ["src/vision_parse"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"src/vision_parse/image_analysis.j2" = "vision_parse/image_analysis.j2"
-"src/vision_parse/markdown_prompt.j2" = "vision_parse/markdown_prompt.j2"
+"src/vision_parse/prompts/image_analysis.j2" = "vision_parse/prompts/image_analysis.j2"
+"src/vision_parse/prompts/markdown_prompt.j2" = "vision_parse/prompts/markdown_prompt.j2"
 
 [tool.hatch.build.targets.sdist]
 include = [

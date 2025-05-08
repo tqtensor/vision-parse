@@ -1,7 +1,9 @@
+import os
 from pathlib import Path
 
-import fitz  # PyMuPDF library for PDF handling
+import fitz
 import pytest
+from dotenv import load_dotenv
 
 from vision_parse.parser import PDFPageConfig, VisionParser
 
@@ -16,10 +18,10 @@ def pdf_path():
 @pytest.fixture
 def page_config():
     return PDFPageConfig(
-        dpi=400,  # High DPI for better image quality
-        color_space="RGB",  # Standard color space for vision models
-        include_annotations=True,  # Include PDF annotations in output
-        preserve_transparency=False,  # Flatten transparency for consistent rendering
+        dpi=400,
+        color_space="RGB",
+        include_annotations=True,
+        preserve_transparency=False,
     )
 
 
@@ -27,7 +29,8 @@ def page_config():
 @pytest.fixture
 def markdown_parser(page_config):
     return VisionParser(
-        model_name="llama3.2-vision:11b",
+        model_name="gpt-4o",
+        api_key=os.getenv("OPENAI_API_KEY"),
         temperature=0.7,
         top_p=0.7,
         page_config=page_config,

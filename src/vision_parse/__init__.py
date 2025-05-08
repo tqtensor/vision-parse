@@ -1,7 +1,7 @@
 from importlib.metadata import PackageNotFoundError, version
 
-from .constants import SUPPORTED_MODELS
-from .llm import LLMError, UnsupportedModelError
+from .constants import SUPPORTED_PROVIDERS
+from .llm import LLMError, UnsupportedProviderError
 from .parser import PDFPageConfig, UnsupportedFileError, VisionParser, VisionParserError
 from .utils import ImageExtractionError
 
@@ -12,13 +12,13 @@ except PackageNotFoundError:
     __version__ = "0.0.0.dev0"
 
 __all__ = [
-    "VisionParser",
-    "PDFPageConfig",
     "ImageExtractionError",
-    "VisionParserError",
-    "UnsupportedFileError",
-    "UnsupportedModelError",
     "LLMError",
-    "SUPPORTED_MODELS",
+    "PDFPageConfig",
+    "SUPPORTED_PROVIDERS",
+    "UnsupportedFileError",
+    "UnsupportedProviderError",
+    "VisionParser",
+    "VisionParserError",
     "__version__",
 ]
