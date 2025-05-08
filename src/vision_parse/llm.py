@@ -101,12 +101,18 @@ class LLM:
         Returns:
             str: The provider name (e.g., 'openai', 'gemini').
 
+        Note:
+            Models with 'litellm' prefix are treated as OpenAI models and
+            converted accordingly by replacing 'litellm' with 'openai'.
+
         Raises:
             UnsupportedProviderError: If the model name doesn't match any known provider.
         """
 
         for provider, prefixes in PROVIDER_PREFIXES.items():
             if any(model_name.startswith(prefix) for prefix in prefixes):
+                if model_name.startswith("litellm"):
+                    self.model_name = model_name.replace("litellm", "openai")
                 return provider
 
         supported_providers = ", ".join(

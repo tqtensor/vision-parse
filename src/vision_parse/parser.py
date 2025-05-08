@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from .exceptions import UnsupportedFileError, VisionParserError
 from .llm import LLM
-from .utils import get_device_config
+from .utils import get_num_workers
 
 logger = logging.getLogger(__name__)
 nest_asyncio.apply()
@@ -41,9 +41,7 @@ class VisionParser:
         api_key: Optional[str] = None,
         temperature: float = 0.7,
         top_p: float = 0.7,
-        ollama_config: Optional[Dict] = None,
-        openai_config: Optional[Dict] = None,
-        gemini_config: Optional[Dict] = None,
+        provider_config: Optional[Dict] = None,
         image_mode: Literal["url", "base64", None] = None,
         custom_prompt: Optional[str] = None,
         detailed_extraction: bool = False,
@@ -58,9 +56,7 @@ class VisionParser:
             api_key (Optional[str]): API key for the LLM provider.
             temperature (float): Controls randomness in LLM output. Defaults to 0.7.
             top_p (float): Controls diversity in LLM output. Defaults to 0.7.
-            ollama_config (Optional[Dict]): Configuration for Ollama provider.
-            openai_config (Optional[Dict]): Configuration for OpenAI provider.
-            gemini_config (Optional[Dict]): Configuration for Google AI Studio provider.
+            provider_config (Optional[Dict]): Configuration for the LLM provider.
             image_mode (Literal["url", "base64", None]): Mode for handling embedded images.
             custom_prompt (Optional[str]): Custom prompt for LLM processing.
             detailed_extraction (bool): Enables detailed text extraction. Defaults to False.
@@ -69,7 +65,7 @@ class VisionParser:
         """
 
         self.page_config = page_config or PDFPageConfig()
-        self.device, self.num_workers = get_device_config()
+        self.num_workers = get_num_workers()
         self.enable_concurrency = enable_concurrency
 
         self.llm = LLM(
@@ -77,15 +73,11 @@ class VisionParser:
             api_key=api_key,
             temperature=temperature,
             top_p=top_p,
-            ollama_config=ollama_config,
-            openai_config=openai_config,
-            gemini_config=gemini_config,
+            provider_config=provider_config,
             image_mode=image_mode,
             detailed_extraction=detailed_extraction,
             custom_prompt=custom_prompt,
             enable_concurrency=enable_concurrency,
-            device=self.device,
-            num_workers=self.num_workers,
             **kwargs,
         )
 

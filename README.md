@@ -126,6 +126,20 @@ parser = VisionParser(
     detailed_extraction=False, # set to True for more detailed extraction
     enable_concurrency=True,
 )
+
+# Initialize parser with model on LiteLLM proxy
+parser = VisionParser(
+    model_name="litellm/provider/model",
+    api_key="your-litellm-proxy-api-key",
+    temperature=0.7,
+    top_p=0.4,
+    image_mode="url",
+    detailed_extraction=False, # set to True for more detailed extraction
+    enable_concurrency=True,
+    provider_config={
+        "base_url": "https://litellm.proxy.domain",
+    },
+)
 ```
 
 ## ✅ Tested Models
