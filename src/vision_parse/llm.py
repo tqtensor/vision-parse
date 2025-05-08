@@ -1,15 +1,15 @@
 import logging
-import os
 import re
 from typing import Any, Dict, Literal, Union
 
 import fitz
+import instructor
 from jinja2 import Template
+from litellm import acompletion, completion
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
-from tqdm import tqdm
 
-from .constants import SUPPORTED_MODELS
+from .constants import PROVIDER_PREFIXES, SUPPORTED_PROVIDERS
 from .utils import ImageData
 
 logger = logging.getLogger(__name__)
@@ -26,8 +26,8 @@ class ImageDescription(BaseModel):
     confidence_score_text: float
 
 
-class UnsupportedModelError(BaseException):
-    """Custom exception for unsupported model names"""
+class UnsupportedProviderError(BaseException):
+    """Custom exception for unsupported provider names"""
 
     pass
 
@@ -58,20 +58,16 @@ class LLM:
         api_key: Union[str, None],
         temperature: float,
         top_p: float,
-        ollama_config: Union[Dict, None],
         openai_config: Union[Dict, None],
         gemini_config: Union[Dict, None],
         image_mode: Literal["url", "base64", None],
         custom_prompt: Union[str, None],
         detailed_extraction: bool,
         enable_concurrency: bool,
-        device: Literal["cuda", "mps", None],
-        num_workers: int,
         **kwargs: Any,
     ):
         self.model_name = model_name
         self.api_key = api_key
-        self.ollama_config = ollama_config or {}
         self.openai_config = openai_config or {}
         self.gemini_config = gemini_config or {}
         self.temperature = temperature
@@ -81,239 +77,125 @@ class LLM:
         self.detailed_extraction = detailed_extraction
         self.kwargs = kwargs
         self.enable_concurrency = enable_concurrency
-        self.device = device
-        self.num_workers = num_workers
 
         self.provider = self._get_provider_name(model_name)
         self._init_llm()
 
     def _init_llm(self) -> None:
-        """Initialize the LLM client."""
-        if self.provider == "ollama":
-            import ollama
-
-            try:
-                ollama.show(self.model_name)
-            except ollama.ResponseError as e:
-                if e.status_code == 404:
-                    current_digest, bars = "", {}
-                    for progress in ollama.pull(self.model_name, stream=True):
-                        digest = progress.get("digest", "")
-                        if digest != current_digest and current_digest in bars:
-                            bars[current_digest].close()
-
-                        if not digest:
-                            logger.info(progress.get("status"))
-                            continue
-
-                        if digest not in bars and (total := progress.get("total")):
-                            bars[digest] = tqdm(
-                                total=total,
-                                desc=f"pulling {digest[7:19]}",
-                                unit="B",
-                                unit_scale=True,
-                            )
-
-                        if completed := progress.get("completed"):
-                            bars[digest].update(completed - bars[digest].n)
-
-                        current_digest = digest
-            except Exception as e:
-                raise LLMError(
-                    f"Unable to download {self.model_name} from Ollama: {str(e)}"
-                )
-
-            try:
-                os.environ["OLLAMA_KEEP_ALIVE"] = str(
-                    self.ollama_config.get("OLLAMA_KEEP_ALIVE", -1)
-                )
-                if self.enable_concurrency:
-                    self.aclient = ollama.AsyncClient(
-                        host=self.ollama_config.get(
-                            "OLLAMA_HOST", "http://localhost:11434"
-                        ),
-                        timeout=self.ollama_config.get("OLLAMA_REQUEST_TIMEOUT", 240.0),
-                    )
-                    if self.device == "cuda":
-                        os.environ["OLLAMA_NUM_GPU"] = str(
-                            self.ollama_config.get(
-                                "OLLAMA_NUM_GPU", self.num_workers // 2
-                            )
-                        )
-                        os.environ["OLLAMA_NUM_PARALLEL"] = str(
-                            self.ollama_config.get(
-                                "OLLAMA_NUM_PARALLEL", self.num_workers * 8
-                            )
-                        )
-                        os.environ["OLLAMA_GPU_LAYERS"] = str(
-                            self.ollama_config.get("OLLAMA_GPU_LAYERS", "all")
-                        )
-                    elif self.device == "mps":
-                        os.environ["OLLAMA_NUM_GPU"] = str(
-                            self.ollama_config.get("OLLAMA_NUM_GPU", 1)
-                        )
-                        os.environ["OLLAMA_NUM_THREAD"] = str(
-                            self.ollama_config.get(
-                                "OLLAMA_NUM_THREAD", self.num_workers
-                            )
-                        )
-                        os.environ["OLLAMA_NUM_PARALLEL"] = str(
-                            self.ollama_config.get(
-                                "OLLAMA_NUM_PARALLEL", self.num_workers * 8
-                            )
-                        )
-                    else:
-                        os.environ["OLLAMA_NUM_THREAD"] = str(
-                            self.ollama_config.get(
-                                "OLLAMA_NUM_THREAD", self.num_workers
-                            )
-                        )
-                        os.environ["OLLAMA_NUM_PARALLEL"] = str(
-                            self.ollama_config.get(
-                                "OLLAMA_NUM_PARALLEL", self.num_workers * 10
-                            )
-                        )
-                else:
-                    self.client = ollama.Client(
-                        host=self.ollama_config.get(
-                            "OLLAMA_HOST", "http://localhost:11434"
-                        ),
-                        timeout=self.ollama_config.get("OLLAMA_REQUEST_TIMEOUT", 240.0),
-                    )
-            except Exception as e:
-                raise LLMError(f"Unable to initialize Ollama client: {str(e)}")
-
-        elif self.provider == "openai" or self.provider == "deepseek":
-            #  support azure openai
-            if self.provider == "openai" and self.openai_config.get(
-                "AZURE_OPENAI_API_KEY"
-            ):
-                try:
-                    import openai
-                    from openai import AsyncAzureOpenAI, AzureOpenAI
-                except ImportError:
-                    raise ImportError(
-                        "OpenAI is not installed. Please install it using pip install 'vision-parse[openai]'."
-                    )
-
-                try:
-                    azure_subscription_key = self.openai_config.get(
-                        "AZURE_OPENAI_API_KEY"
-                    )
-                    azure_endpoint_url = self.openai_config.get("AZURE_ENDPOINT_URL")
-
-                    if not azure_endpoint_url or not azure_subscription_key:
-                        raise LLMError(
-                            "Set `AZURE_ENDPOINT_URL` and `AZURE_OPENAI_API_KEY` environment variables in `openai_config` parameter"
-                        )
-
-                    if self.openai_config.get("AZURE_DEPLOYMENT_NAME"):
-                        self.model_name = self.openai_config.get(
-                            "AZURE_DEPLOYMENT_NAME"
-                        )
-
-                    api_version = self.openai_config.get(
-                        "AZURE_OPENAI_API_VERSION", "2024-08-01-preview"
-                    )
-
-                    # Initialize Azure OpenAI client with key-based authentication
-                    if self.enable_concurrency:
-                        self.aclient = AsyncAzureOpenAI(
-                            azure_endpoint=azure_endpoint_url,
-                            api_key=azure_subscription_key,
-                            api_version=api_version,
-                        )
-                    else:
-                        self.client = AzureOpenAI(
-                            azure_endpoint=azure_endpoint_url,
-                            api_key=azure_subscription_key,
-                            api_version=api_version,
-                        )
-
-                except openai.OpenAIError as e:
-                    raise LLMError(
-                        f"Unable to initialize Azure OpenAI client: {str(e)}"
-                    )
-
-            else:
-                try:
-                    import openai
-                except ImportError:
-                    raise ImportError(
-                        "OpenAI is not installed. Please install it using pip install 'vision-parse[openai]'."
-                    )
-                try:
-                    if self.enable_concurrency:
-                        self.aclient = openai.AsyncOpenAI(
-                            api_key=self.api_key,
-                            base_url=(
-                                self.openai_config.get("OPENAI_BASE_URL", None)
-                                if self.provider == "openai"
-                                else "https://api.deepseek.com"
-                            ),
-                            max_retries=self.openai_config.get("OPENAI_MAX_RETRIES", 3),
-                            timeout=self.openai_config.get("OPENAI_TIMEOUT", 240.0),
-                            default_headers=self.openai_config.get(
-                                "OPENAI_DEFAULT_HEADERS", None
-                            ),
-                        )
-                    else:
-                        self.client = openai.OpenAI(
-                            api_key=self.api_key,
-                            base_url=(
-                                self.openai_config.get("OPENAI_BASE_URL", None)
-                                if self.provider == "openai"
-                                else "https://api.deepseek.com"
-                            ),
-                            max_retries=self.openai_config.get("OPENAI_MAX_RETRIES", 3),
-                            timeout=self.openai_config.get("OPENAI_TIMEOUT", 240.0),
-                            default_headers=self.openai_config.get(
-                                "OPENAI_DEFAULT_HEADERS", None
-                            ),
-                        )
-                except openai.OpenAIError as e:
-                    raise LLMError(f"Unable to initialize OpenAI client: {str(e)}")
-
-        elif self.provider == "gemini":
-            try:
-                import google.generativeai as genai
-            except ImportError:
-                raise ImportError(
-                    "Gemini is not installed. Please install it using pip install 'vision-parse[gemini]'."
-                )
-
-            try:
-                genai.configure(api_key=self.api_key)
-                self.client = genai.GenerativeModel(model_name=self.model_name)
-                self.generation_config = genai.GenerationConfig
-            except Exception as e:
-                raise LLMError(f"Unable to initialize Gemini client: {str(e)}")
+        """Initialize the LLM client using litellm."""
+        try:
+            # Initialize instructor client
+            self.client = instructor.patch(
+                completion if not self.enable_concurrency else acompletion,
+                mode=instructor.Mode.JSON,
+            )
+        except Exception as e:
+            raise LLMError(f"Unable to initialize LLM client: {str(e)}")
 
     def _get_provider_name(self, model_name: str) -> str:
-        """Get the provider name for a given model name."""
-        try:
-            return SUPPORTED_MODELS[
-                "litellm/*" if "litellm" in model_name else model_name
-            ]
-        except KeyError:
-            supported_models = ", ".join(
-                f"'{model}' from {provider}"
-                for model, provider in SUPPORTED_MODELS.items()
-            )
-            raise UnsupportedModelError(
-                f"Model '{model_name}' is not supported. "
-                f"Supported models are: {supported_models}"
+        """Get the provider name for a given model name based on its prefix."""
+        for provider, prefixes in PROVIDER_PREFIXES.items():
+            if any(model_name.startswith(prefix) for prefix in prefixes):
+                return provider
+
+        supported_providers = ", ".join(
+            f"{name} ({provider})" for provider, name in SUPPORTED_PROVIDERS.items()
+        )
+        raise UnsupportedProviderError(
+            f"Model '{model_name}' is not from a supported provider. "
+            f"Supported providers are: {supported_providers}"
+        )
+
+    def _get_model_params(self, structured: bool = False) -> Dict[str, Any]:
+        """Get model parameters based on provider and configuration."""
+        params = {
+            "model": self.model_name,
+            "temperature": 0.0 if structured else self.temperature,
+            "top_p": 0.4 if structured else self.top_p,
+            **self.kwargs,
+        }
+
+        if self.provider in ["openai", "azure"]:
+            if self.openai_config.get("AZURE_OPENAI_API_KEY"):
+                params.update(
+                    {
+                        "api_key": self.openai_config["AZURE_OPENAI_API_KEY"],
+                        "api_base": self.openai_config["AZURE_ENDPOINT_URL"],
+                        "api_version": self.openai_config.get(
+                            "AZURE_OPENAI_API_VERSION", "2024-08-01-preview"
+                        ),
+                        "deployment_id": self.openai_config.get(
+                            "AZURE_DEPLOYMENT_NAME"
+                        ),
+                    }
+                )
+            else:
+                params.update(
+                    {
+                        "api_key": self.api_key,
+                        "base_url": self.openai_config.get("OPENAI_BASE_URL"),
+                        "max_retries": self.openai_config.get("OPENAI_MAX_RETRIES", 3),
+                        "timeout": self.openai_config.get("OPENAI_TIMEOUT", 240.0),
+                    }
+                )
+        elif self.provider == "gemini":
+            params.update(
+                {
+                    "api_key": self.api_key,
+                    **self.gemini_config,
+                }
             )
 
+        return params
+
+    @retry(
+        reraise=True,
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+    )
     async def _get_response(
         self, base64_encoded: str, prompt: str, structured: bool = False
-    ):
-        if self.provider == "ollama":
-            return await self._ollama(base64_encoded, prompt, structured)
-        elif self.provider == "openai" or self.provider == "deepseek":
-            return await self._openai(base64_encoded, prompt, structured)
-        elif self.provider == "gemini":
-            return await self._gemini(base64_encoded, prompt, structured)
+    ) -> Any:
+        """Get response from LLM using litellm and instructor."""
+        try:
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{base64_encoded}"
+                            },
+                        },
+                    ],
+                }
+            ]
+
+            params = self._get_model_params(structured)
+
+            if structured:
+                response = await self.client.chat.completions.create(
+                    messages=messages,
+                    response_model=ImageDescription,
+                    **params,
+                )
+                return response.model_dump_json()
+            else:
+                response = await self.client.chat.completions.create(
+                    messages=messages,
+                    **params,
+                )
+                return re.sub(
+                    r"```(?:markdown)?\n(.*?)\n```",
+                    r"\1",
+                    response.choices[0].message.content,
+                    flags=re.DOTALL,
+                )
+
+        except Exception as e:
+            raise LLMError(f"LLM processing failed: {str(e)}")
 
     async def generate_markdown(
         self, base64_encoded: str, pix: fitz.Pixmap, page_number: int
@@ -334,8 +216,7 @@ class LLM:
                     return ""
 
                 if (
-                    self.provider == "ollama"
-                    and float(json_response.confidence_score_text) > 0.6
+                    float(json_response.confidence_score_text) > 0.6
                     and json_response.tables_detected.strip() == "No"
                     and json_response.latex_equations_detected.strip() == "No"
                     and (
@@ -393,198 +274,3 @@ class LLM:
                     )
 
         return markdown_content
-
-    @retry(
-        reraise=True,
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-    )
-    async def _ollama(
-        self, base64_encoded: str, prompt: str, structured: bool = False
-    ) -> Any:
-        """Process base64-encoded image through Ollama vision models."""
-        try:
-            if self.enable_concurrency:
-                response = await self.aclient.chat(
-                    model=self.model_name,
-                    format=ImageDescription.model_json_schema() if structured else None,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt,
-                            "images": [base64_encoded],
-                        }
-                    ],
-                    options={
-                        "temperature": 0.0 if structured else self.temperature,
-                        "top_p": 0.4 if structured else self.top_p,
-                        **self.kwargs,
-                    },
-                    keep_alive=-1,
-                )
-            else:
-                response = self.client.chat(
-                    model=self.model_name,
-                    format=ImageDescription.model_json_schema() if structured else None,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt,
-                            "images": [base64_encoded],
-                        }
-                    ],
-                    options={
-                        "temperature": 0.0 if structured else self.temperature,
-                        "top_p": 0.4 if structured else self.top_p,
-                        **self.kwargs,
-                    },
-                    keep_alive=-1,
-                )
-
-            return re.sub(
-                r"```(?:markdown)?\n(.*?)\n```",
-                r"\1",
-                response["message"]["content"],
-                flags=re.DOTALL,
-            )
-        except Exception as e:
-            raise LLMError(f"Ollama Model processing failed: {str(e)}")
-
-    @retry(
-        reraise=True,
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-    )
-    async def _openai(
-        self, base64_encoded: str, prompt: str, structured: bool = False
-    ) -> Any:
-        """Process base64-encoded image through OpenAI vision models."""
-        if "litellm" in self.model_name:
-            self.model_name = self.model_name.replace("litellm/", "")
-
-        try:
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/png;base64,{base64_encoded}"
-                            },
-                        },
-                    ],
-                }
-            ]
-
-            if self.enable_concurrency:
-                if structured:
-                    if os.getenv("AZURE_OPENAI_API_KEY") or self.provider == "deepseek":
-                        response = await self.aclient.chat.completions.create(
-                            model=self.model_name,
-                            messages=messages,
-                            temperature=0.0,
-                            top_p=0.4,
-                            response_format={"type": "json_object"},
-                            stream=False,
-                            **self.kwargs,
-                        )
-                    else:
-                        response = await self.aclient.beta.chat.completions.parse(
-                            model=self.model_name,
-                            response_format=ImageDescription,
-                            messages=messages,
-                            temperature=0.0,
-                            top_p=0.4,
-                            **self.kwargs,
-                        )
-                    return response.choices[0].message.content
-
-                response = await self.aclient.chat.completions.create(
-                    model=self.model_name,
-                    messages=messages,
-                    temperature=self.temperature,
-                    top_p=self.top_p,
-                    stream=False,
-                    **self.kwargs,
-                )
-            else:
-                if structured:
-                    if os.getenv("AZURE_OPENAI_API_KEY") or self.provider == "deepseek":
-                        response = self.client.chat.completions.create(
-                            model=self.model_name,
-                            messages=messages,
-                            temperature=0.0,
-                            top_p=0.4,
-                            response_format={"type": "json_object"},
-                            stream=False,
-                            **self.kwargs,
-                        )
-                    else:
-                        response = self.client.beta.chat.completions.parse(
-                            model=self.model_name,
-                            response_format=ImageDescription,
-                            messages=messages,
-                            temperature=0.0,
-                            top_p=0.4,
-                            **self.kwargs,
-                        )
-                    return response.choices[0].message.content
-
-                response = self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=messages,
-                    temperature=self.temperature,
-                    top_p=self.top_p,
-                    stream=False,
-                    **self.kwargs,
-                )
-
-            return re.sub(
-                r"```(?:markdown)?\n(.*?)\n```",
-                r"\1",
-                response.choices[0].message.content,
-                flags=re.DOTALL,
-            )
-        except Exception as e:
-            raise LLMError(f"OpenAI Model processing failed: {str(e)}")
-
-    @retry(
-        reraise=True,
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-    )
-    async def _gemini(
-        self, base64_encoded: str, prompt: str, structured: bool = False
-    ) -> Any:
-        """Process base64-encoded image through Gemini vision models."""
-        try:
-            if self.enable_concurrency:
-                response = await self.client.generate_content_async(
-                    [{"mime_type": "image/png", "data": base64_encoded}, prompt],
-                    generation_config=self.generation_config(
-                        response_mime_type="application/json" if structured else None,
-                        response_schema=ImageDescription if structured else None,
-                        temperature=0.0 if structured else self.temperature,
-                        top_p=0.4 if structured else self.top_p,
-                        **self.kwargs,
-                    ),
-                )
-            else:
-                response = self.client.generate_content(
-                    [{"mime_type": "image/png", "data": base64_encoded}, prompt],
-                    generation_config=self.generation_config(
-                        response_mime_type="application/json" if structured else None,
-                        response_schema=ImageDescription if structured else None,
-                        temperature=0.0 if structured else self.temperature,
-                        top_p=0.4 if structured else self.top_p,
-                        **self.kwargs,
-                    ),
-                )
-
-            return re.sub(
-                r"```(?:markdown)?\n(.*?)\n```", r"\1", response.text, flags=re.DOTALL
-            )
-        except Exception as e:
-            raise LLMError(f"Gemini Model processing failed: {str(e)}")

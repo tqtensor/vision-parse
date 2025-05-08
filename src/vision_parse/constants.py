@@ -1,16 +1,16 @@
-from typing import Dict
+from typing import Dict, List
 
-SUPPORTED_MODELS: Dict[str, str] = {
-    "llama3.2-vision:11b": "ollama",
-    "llama3.2-vision:70b": "ollama",
-    "llava:13b": "ollama",
-    "llava:34b": "ollama",
-    "deepseek-r1:32b": "ollama",
-    "gpt-4o": "openai",
-    "gpt-4o-mini": "openai",
-    "litellm/*": "openai",
-    "gemini-1.5-flash": "gemini",
-    "gemini-2.0-flash-exp": "gemini",
-    "gemini-1.5-pro": "gemini",
-    "deepseek-chat": "deepseek",
+SUPPORTED_PROVIDERS: Dict[str, str] = {
+    "openai": "OpenAI",
+    "azure": "Azure OpenAI",
+    "gemini": "Google AI Studio",
+    "deepseek": "DeepSeek",
+}
+
+# Common model prefixes for provider detection
+PROVIDER_PREFIXES: Dict[str, List[str]] = {
+    "openai": ["gpt-", "ft:gpt-"],
+    "azure": ["gpt-", "ft:gpt-"],
+    "gemini": ["gemini-"],
+    "deepseek": ["deepseek-"],
 }
