@@ -2,7 +2,7 @@
 
 test:
 	uv pip install -e . --link-mode=copy
-	pytest -v --capture=no
+	pytest -v --capture=no -W ignore
 
 build:
 	python -m build

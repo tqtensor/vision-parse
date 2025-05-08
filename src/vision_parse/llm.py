@@ -40,10 +40,10 @@ class ImageDescription(BaseModel):
 class LLM:
     try:
         _image_analysis_prompt = Template(
-            files("vision_parse").joinpath("image_analysis.j2").read_text()
+            files("vision_parse").joinpath("prompts/image_analysis.j2").read_text()
         )
         _md_prompt_template = Template(
-            files("vision_parse").joinpath("markdown_prompt.j2").read_text()
+            files("vision_parse").joinpath("prompts/markdown_prompt.j2").read_text()
         )
     except Exception as e:
         raise FileNotFoundError(f"Failed to load prompt files: {str(e)}")
