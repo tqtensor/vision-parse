@@ -1,4 +1,4 @@
-.PHONY: lint format test build release tag format-nb
+.PHONY: test build release tag toml-sort
 
 test:
 	uv pip install -e . --link-mode=copy
