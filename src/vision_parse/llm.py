@@ -1,6 +1,7 @@
 import logging
 import re
-from typing import Any, Dict, Literal, Union
+from importlib.resources import files
+from typing import Any, Dict, Literal
 
 import fitz
 import instructor
@@ -56,10 +57,7 @@ class LLMError(BaseException):
 
 
 class LLM:
-    # Load prompts at class level
     try:
-        from importlib.resources import files
-
         _image_analysis_prompt = Template(
             files("vision_parse").joinpath("image_analysis.j2").read_text()
         )
@@ -72,13 +70,13 @@ class LLM:
     def __init__(
         self,
         model_name: str,
-        api_key: Union[str, None],
+        api_key: str | None,
         temperature: float,
         top_p: float,
-        openai_config: Union[Dict, None],
-        gemini_config: Union[Dict, None],
+        openai_config: Dict | None,
+        gemini_config: Dict | None,
         image_mode: Literal["url", "base64", None],
-        custom_prompt: Union[str, None],
+        custom_prompt: str | None,
         detailed_extraction: bool,
         enable_concurrency: bool,
         **kwargs: Any,
@@ -99,7 +97,7 @@ class LLM:
         self._init_llm()
 
     def _init_llm(self) -> None:
-        """Initializes the LLM client with litellm integration.
+        """Initializes the LLM client with LiteLLM integration.
 
         This method sets up the instructor client with appropriate completion mode
         based on concurrency settings.
@@ -108,11 +106,9 @@ class LLM:
             LLMError: If client initialization fails.
         """
         try:
-            # Initialize instructor client
-            self.client = instructor.patch(
-                completion if not self.enable_concurrency else acompletion,
-                mode=instructor.Mode.JSON,
-            )
+            # Initialize instructor client with litellm
+            completion_func = acompletion if self.enable_concurrency else completion
+            self.client = instructor.from_litellm(completion_func)
         except Exception as e:
             raise LLMError(f"Unable to initialize LLM client: {str(e)}")
 
@@ -128,6 +124,7 @@ class LLM:
         Raises:
             UnsupportedProviderError: If the model name doesn't match any known provider.
         """
+
         for provider, prefixes in PROVIDER_PREFIXES.items():
             if any(model_name.startswith(prefix) for prefix in prefixes):
                 return provider
@@ -150,14 +147,23 @@ class LLM:
         Returns:
             Dict[str, Any]: Dictionary containing model parameters for API calls.
         """
+        # Base parameters that are common across providers
         params = {
             "model": self.model_name,
             "temperature": 0.0 if structured else self.temperature,
             "top_p": 0.4 if structured else self.top_p,
-            **self.kwargs,
         }
 
+        # Filter kwargs based on provider
         if self.provider in ["openai", "azure"]:
+            # Only include OpenAI-compatible parameters
+            openai_params = {
+                k: v
+                for k, v in self.kwargs.items()
+                if k not in ["device", "num_workers", "ollama_config"]
+            }
+            params.update(openai_params)
+
             if self.openai_config.get("AZURE_OPENAI_API_KEY"):
                 params.update(
                     {
@@ -181,6 +187,13 @@ class LLM:
                     }
                 )
         elif self.provider == "gemini":
+            # Only include Gemini-compatible parameters
+            gemini_params = {
+                k: v
+                for k, v in self.kwargs.items()
+                if k not in ["device", "num_workers", "ollama_config"]
+            }
+            params.update(gemini_params)
             params.update(
                 {
                     "api_key": self.api_key,
@@ -198,7 +211,7 @@ class LLM:
     async def _get_response(
         self, base64_encoded: str, prompt: str, structured: bool = False
     ) -> Any:
-        """Retrieves response from LLM using litellm and instructor.
+        """Retrieves response from LLM using LiteLLM and instructor.
 
         Args:
             base64_encoded (str): Base64 encoded image data.
@@ -238,17 +251,18 @@ class LLM:
                 )
                 return response.model_dump_json()
             else:
+                # For non-structured responses, use str as the response model
                 response = await self.client.chat.completions.create(
                     messages=messages,
+                    response_model=str,
                     **params,
                 )
                 return re.sub(
                     r"```(?:markdown)?\n(.*?)\n```",
                     r"\1",
-                    response.choices[0].message.content,
+                    response,
                     flags=re.DOTALL,
                 )
-
         except Exception as e:
             raise LLMError(f"LLM processing failed: {str(e)}")
 
@@ -268,6 +282,7 @@ class LLM:
         Returns:
             Any: The generated markdown text, including any embedded images if configured.
         """
+
         extracted_images = []
         if self.detailed_extraction:
             try:
