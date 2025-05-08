@@ -1,11 +1,9 @@
 import base64
 import logging
 import os
-import platform
-import subprocess
 from dataclasses import dataclass
 from threading import Lock
-from typing import ClassVar, List, Literal, Tuple
+from typing import ClassVar, List, Literal
 
 import cv2
 import fitz
@@ -51,6 +49,7 @@ class ImageData:
         Raises:
             ImageExtractionError: If image processing fails.
         """
+
         try:
             grayscale = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             smooth = cv2.GaussianBlur(grayscale, (5, 5), 0)
@@ -83,6 +82,7 @@ class ImageData:
         Raises:
             ImageExtractionError: If image validation fails.
         """
+
         try:
             width, height = region_dims
             region_area = cv2.contourArea(contour) / (width * height)
@@ -127,6 +127,7 @@ class ImageData:
         Raises:
             ImageExtractionError: If image extraction or processing fails.
         """
+
         with cls._lock:
             try:
                 min_width, min_height = min_dimensions
@@ -198,29 +199,17 @@ class ImageData:
                 raise ImageExtractionError(f"Image processing failed: {str(e)}")
 
 
-def get_device_config() -> Tuple[Literal["cuda", "mps", "cpu"], int]:
-    """Determines optimal device configuration for processing.
+def get_num_workers() -> int:
+    """Determines optimal number of worker processes for concurrent operations.
 
-    This function checks available hardware (GPU, MPS, CPU) and returns
-    the appropriate device type and number of worker processes.
+    Uses system CPU information to choose a reasonable number of worker processes
+    for PDF page processing. Generally uses half the available CPU cores to avoid
+    overwhelming the system.
 
     Returns:
-        Tuple[Literal["cuda", "mps", "cpu"], int]: Device type and optimal number
-            of worker processes.
+        int: Optimal number of worker processes (minimum 2, maximum 8).
     """
-    try:
-        nvidia_smi = subprocess.run(
-            ["nvidia-smi", "--query-gpu=gpu_name", "--format=csv,noheader"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        if nvidia_smi.returncode == 0:
-            return "cuda", min(len(nvidia_smi.stdout.strip().split("\n")) * 2, 8)
-    except Exception:
-        pass
 
-    if platform.system() == "Darwin" and platform.processor() == "arm":
-        return "mps", 4
-
-    return "cpu", max(2, (os.cpu_count() // 2))
+    cpu_count = os.cpu_count() or 4  # default to 4 if detection fails
+    # Use half of available CPUs, but keep between 2-8 workers for reasonable performance
+    return max(2, min(cpu_count // 2, 8))

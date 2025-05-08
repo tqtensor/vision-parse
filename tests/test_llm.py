@@ -53,15 +53,6 @@ def test_unsupported_model():
             model_name="unsupported-model",
             temperature=0.7,
             top_p=0.7,
-            api_key=None,
-            openai_config=None,
-            gemini_config=None,
-            image_mode=None,
-            custom_prompt=None,
-            detailed_extraction=False,
-            enable_concurrency=False,
-            device=None,
-            num_workers=1,
         )
     assert "not from a supported provider" in str(exc_info.value)
 
@@ -81,14 +72,11 @@ async def test_openai_generate_markdown(
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        openai_config={"OPENAI_API_KEY": "test-key"},
-        gemini_config=None,
+        provider_config={"base_url": "https://api.openai.com/v1"},
         image_mode=None,
         custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
-        device=None,
-        num_workers=1,
     )
     result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 
@@ -109,22 +97,18 @@ async def test_azure_openai_generate_markdown(
 
     llm = LLM(
         model_name="gpt-4o",
-        api_key=None,
+        provider_config={
+            "api_key": "test-key",
+            "api_base": "https://test.openai.azure.com/",
+            "deployment_id": "gpt-4o",
+            "api_version": "2024-08-01-preview",
+        },
         temperature=0.7,
         top_p=0.7,
-        openai_config={
-            "AZURE_ENDPOINT_URL": "https://test.openai.azure.com/",
-            "AZURE_DEPLOYMENT_NAME": "gpt-4o",
-            "AZURE_OPENAI_API_KEY": "test-key",
-            "AZURE_OPENAI_API_VERSION": "2024-08-01-preview",
-        },
-        gemini_config=None,
         image_mode=None,
         custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
-        device=None,
-        num_workers=1,
     )
     result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 
@@ -145,17 +129,13 @@ async def test_gemini_generate_markdown(
 
     llm = LLM(
         model_name="gemini-2.5-pro",
-        api_key=None,
+        api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        openai_config=None,
-        gemini_config={"GOOGLE_API_KEY": "test-key"},
         image_mode=None,
         custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
-        device=None,
-        num_workers=1,
     )
     result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 
@@ -179,14 +159,10 @@ async def test_deepseek_generate_markdown(
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        openai_config=None,
-        gemini_config=None,
         image_mode=None,
         custom_prompt=None,
         detailed_extraction=True,
         enable_concurrency=True,
-        device=None,
-        num_workers=1,
     )
     result = await llm.generate_markdown(sample_base64_image, mock_pixmap, 0)
 

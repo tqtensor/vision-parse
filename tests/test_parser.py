@@ -198,19 +198,20 @@ def test_parser_with_custom_page_config():
     assert parser.page_config.preserve_transparency
 
 
-def test_parser_with_openai_config():
-    """Test parser initialization with OpenAI configuration."""
+def test_parser_with_provider_config():
+    """Test parser initialization with provider-specific configuration."""
 
-    openai_config = {
-        "OPENAI_BASE_URL": "https://api.openai.com/v1",
-        "OPENAI_MAX_RETRIES": 3,
-        "OPENAI_TIMEOUT": 240.0,
+    provider_config = {
+        "base_url": "https://api.openai.com/v1",
+        "max_retries": 3,
+        "timeout": 240.0,
     }
     parser = VisionParser(
         model_name="gpt-4o",
         api_key="test-key",
         temperature=0.7,
         top_p=0.7,
-        openai_config=openai_config,
+        provider_config=provider_config,
     )
-    assert parser.llm.openai_config == openai_config
+    # Test that provider_config is correctly passed through to the LLM
+    assert parser.llm.provider_config == provider_config

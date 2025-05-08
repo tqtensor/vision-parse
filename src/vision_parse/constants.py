@@ -9,7 +9,7 @@ SUPPORTED_PROVIDERS: Dict[str, str] = {
 
 # Common model prefixes for provider detection
 PROVIDER_PREFIXES: Dict[str, List[str]] = {
-    "openai": ["gpt"],
+    "openai": ["gpt", "litellm"],
     "azure": ["gpt"],
     "gemini": ["gemini"],
     "deepseek": ["deepseek"],
