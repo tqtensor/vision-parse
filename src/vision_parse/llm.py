@@ -1,7 +1,7 @@
 import logging
 import re
 from importlib.resources import files
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Literal, Optional
 
 import fitz
 import instructor
@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from .constants import PROVIDER_PREFIXES, SUPPORTED_PROVIDERS
+from .exceptions import LLMError, UnsupportedProviderError
 from .utils import ImageData
 
 logger = logging.getLogger(__name__)
@@ -36,26 +37,6 @@ class ImageDescription(BaseModel):
     confidence_score_text: float
 
 
-class UnsupportedProviderError(BaseException):
-    """Raises an error when the specified LLM provider is not supported.
-
-    This exception is raised when attempting to use a model from an unsupported
-    LLM provider or when the model name does not match any known provider prefix.
-    """
-
-    pass
-
-
-class LLMError(BaseException):
-    """Raises an error when LLM processing encounters a failure.
-
-    This exception is raised when there are issues during LLM initialization,
-    API calls, or response processing.
-    """
-
-    pass
-
-
 class LLM:
     try:
         _image_analysis_prompt = Template(
@@ -70,13 +51,13 @@ class LLM:
     def __init__(
         self,
         model_name: str,
-        api_key: str | None,
+        api_key: Optional[str],
         temperature: float,
         top_p: float,
-        openai_config: Dict | None,
-        gemini_config: Dict | None,
+        openai_config: Optional[Dict],
+        gemini_config: Optional[Dict],
         image_mode: Literal["url", "base64", None],
-        custom_prompt: str | None,
+        custom_prompt: Optional[str],
         detailed_extraction: bool,
         enable_concurrency: bool,
         **kwargs: Any,
@@ -105,6 +86,7 @@ class LLM:
         Raises:
             LLMError: If client initialization fails.
         """
+
         try:
             # Initialize instructor client with litellm
             completion_func = acompletion if self.enable_concurrency else completion

@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import logging
-import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
@@ -10,6 +9,7 @@ import nest_asyncio
 from pydantic import BaseModel
 from tqdm import tqdm
 
+from .exceptions import UnsupportedFileError, VisionParserError
 from .llm import LLM
 from .utils import get_device_config
 
@@ -33,32 +33,11 @@ class PDFPageConfig(BaseModel):
     preserve_transparency: bool = False
 
 
-class UnsupportedFileError(BaseException):
-    """Exception raised when an unsupported file type is provided.
-
-    This exception is raised when attempting to process a file that is not a PDF.
-    """
-
-    pass
-
-
-class VisionParserError(BaseException):
-    """Exception raised when there is an error in the PDF to markdown conversion process.
-
-    This exception is raised when there are issues during the conversion of PDF pages
-    to markdown format, such as conversion failures or processing errors.
-    """
-
-    pass
-
-
 class VisionParser:
-    """Converts PDF pages to base64-encoded images and extracts text from the images in markdown format."""
-
     def __init__(
         self,
         page_config: Optional[PDFPageConfig] = None,
-        model_name: str = "llama3.2-vision:11b",
+        model_name: str = "gpt-4o",
         api_key: Optional[str] = None,
         temperature: float = 0.7,
         top_p: float = 0.7,
@@ -68,27 +47,30 @@ class VisionParser:
         image_mode: Literal["url", "base64", None] = None,
         custom_prompt: Optional[str] = None,
         detailed_extraction: bool = False,
-        extraction_complexity: bool = False,  # Deprecated Parameter
         enable_concurrency: bool = False,
         **kwargs: Any,
     ):
-        """Initializes parser with PDFPageConfig and LLM configuration."""
+        """Initializes the parser with PDF page configuration and LLM settings.
+
+        Args:
+            page_config (Optional[PDFPageConfig]): Configuration for PDF page processing.
+            model_name (str): Name of the LLM model to use. Defaults to "gpt-4o".
+            api_key (Optional[str]): API key for the LLM provider.
+            temperature (float): Controls randomness in LLM output. Defaults to 0.7.
+            top_p (float): Controls diversity in LLM output. Defaults to 0.7.
+            ollama_config (Optional[Dict]): Configuration for Ollama provider.
+            openai_config (Optional[Dict]): Configuration for OpenAI provider.
+            gemini_config (Optional[Dict]): Configuration for Google AI Studio provider.
+            image_mode (Literal["url", "base64", None]): Mode for handling embedded images.
+            custom_prompt (Optional[str]): Custom prompt for LLM processing.
+            detailed_extraction (bool): Enables detailed text extraction. Defaults to False.
+            enable_concurrency (bool): Enables concurrent page processing. Defaults to False.
+            **kwargs: Additional keyword arguments for LLM configuration.
+        """
+
         self.page_config = page_config or PDFPageConfig()
         self.device, self.num_workers = get_device_config()
         self.enable_concurrency = enable_concurrency
-
-        if extraction_complexity:
-            if not detailed_extraction:
-                detailed_extraction = True
-                warnings.warn(
-                    "`extraction_complexity` is deprecated, and was renamed to `detailed_extraction`.",
-                    DeprecationWarning,
-                )
-
-            else:
-                raise ValueError(
-                    "`extraction_complexity` is deprecated, and was renamed to `detailed_extraction`. Please use `detailed_extraction` instead."
-                )
 
         self.llm = LLM(
             model_name=model_name,
@@ -108,7 +90,15 @@ class VisionParser:
         )
 
     def _calculate_matrix(self, page: fitz.Page) -> fitz.Matrix:
-        """Calculates transformation matrix for page conversion."""
+        """Calculates the transformation matrix for page conversion.
+
+        Args:
+            page (fitz.Page): The PDF page to process.
+
+        Returns:
+            fitz.Matrix: The calculated transformation matrix.
+        """
+
         # Calculate zoom factor based on target DPI
         zoom = self.page_config.dpi / 72
         matrix = fitz.Matrix(zoom * 2, zoom * 2)
@@ -120,7 +110,19 @@ class VisionParser:
         return matrix
 
     async def _convert_page(self, page: fitz.Page, page_number: int) -> str:
-        """Converts a single PDF page into base64-encoded PNG and extracts markdown formatted text."""
+        """Converts a single PDF page into markdown formatted text.
+
+        Args:
+            page (fitz.Page): The PDF page to convert.
+            page_number (int): The page number being processed.
+
+        Returns:
+            str: The markdown formatted text extracted from the page.
+
+        Raises:
+            VisionParserError: If page conversion fails.
+        """
+
         try:
             matrix = self._calculate_matrix(page)
 
@@ -146,7 +148,16 @@ class VisionParser:
                 pix = None
 
     async def _convert_pages_batch(self, pages: List[fitz.Page], start_idx: int):
-        """Processes a batch of PDF pages concurrently."""
+        """Processes a batch of PDF pages concurrently.
+
+        Args:
+            pages (List[fitz.Page]): List of PDF pages to process.
+            start_idx (int): Starting index for page numbering.
+
+        Returns:
+            List[str]: List of markdown formatted texts from the processed pages.
+        """
+
         try:
             tasks = []
             for i, page in enumerate(pages):
@@ -156,7 +167,20 @@ class VisionParser:
             await asyncio.sleep(0.5)
 
     def convert_pdf(self, pdf_path: Union[str, Path]) -> List[str]:
-        """Converts all pages in the given PDF file to markdown text."""
+        """Converts all pages in a PDF file to markdown text.
+
+        Args:
+            pdf_path (Union[str, Path]): Path to the PDF file to convert.
+
+        Returns:
+            List[str]: List of markdown formatted texts for each page.
+
+        Raises:
+            FileNotFoundError: If the PDF file does not exist.
+            UnsupportedFileError: If the file is not a PDF.
+            VisionParserError: If PDF conversion fails.
+        """
+
         pdf_path = Path(pdf_path)
         converted_pages = []
 
@@ -199,7 +223,6 @@ class VisionParser:
                             pbar.update(1)
 
                 return converted_pages
-
         except Exception as e:
             raise VisionParserError(
                 f"Failed to convert PDF file into markdown content: {str(e)}"
