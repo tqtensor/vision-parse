@@ -93,17 +93,17 @@ parser = VisionParser(
 # Initialize parser with Azure OpenAI model
 parser = VisionParser(
     model_name="gpt-4o",
+    api_key="your-azure-openai-api-key", # replace with your Azure OpenAI API key
     image_mode="url",
     detailed_extraction=False, # set to True for more detailed extraction
     enable_concurrency=True,
-    openai_config={
-        "AZURE_ENDPOINT_URL": "https://****.openai.azure.com/", # replace with your Azure endpoint URL
-        "AZURE_DEPLOYMENT_NAME": "*******", # replace with Azure deployment name, if needed
-        "AZURE_OPENAI_API_KEY": "***********", # replace with your Azure OpenAI API key
-        "AZURE_OPENAI_API_VERSION": "2024-08-01-preview", # replace with latest Azure OpenAI API version
+    provider_config={
+        "base_url": "https://****.openai.azure.com/", # replace with your Azure endpoint URL
+        "api_version": "2024-08-01-preview", # replace with latest Azure OpenAI API version
+        "azure": True, # specify that this is Azure OpenAI
+        "azure_deployment": "*******", # replace with Azure deployment name
     },
 )
-
 
 # Initialize parser with Google Gemini model
 parser = VisionParser(
@@ -162,30 +162,28 @@ The following Vision LLM models have been thoroughly tested with Vision Parse, b
 
 ### Provider-Specific Configuration
 
-#### OpenAI Configuration
+The `provider_config` parameter lets you configure provider-specific settings through a unified interface:
 
 ```python
-openai_config = {
-    # For standard OpenAI
-    "OPENAI_BASE_URL": "https://api.openai.com/v1",  # optional
-    "OPENAI_MAX_RETRIES": 3,                         # optional
-    "OPENAI_TIMEOUT": 240.0,                         # optional
-
-    # For Azure OpenAI
-    "AZURE_ENDPOINT_URL": "https://your-resource.openai.azure.com/",
-    "AZURE_DEPLOYMENT_NAME": "your-deployment-name",
-    "AZURE_OPENAI_API_KEY": "your-azure-api-key",
-    "AZURE_OPENAI_API_VERSION": "2024-08-01-preview",
+# For OpenAI
+provider_config = {
+    "base_url": "https://api.openai.com/v1",  # optional
+    "max_retries": 3,                         # optional
+    "timeout": 240.0,                         # optional
 }
-```
 
-#### Gemini Configuration (Google AI Studio)
+# For Azure OpenAI
+provider_config = {
+    "base_url": "https://your-resource.openai.azure.com/",
+    "api_version": "2024-08-01-preview",
+    "azure": True,
+    "azure_deployment": "your-deployment-name",
+}
 
-```python
-gemini_config = {
-    "GOOGLE_API_KEY": "your-google-api-key",  # API key from Google AI Studio (not Vertex AI)
-    "GEMINI_MAX_RETRIES": 3,                  # optional
-    "GEMINI_TIMEOUT": 240.0,                  # optional
+# For Gemini (Google AI Studio)
+provider_config = {
+    "max_retries": 3,    # optional
+    "timeout": 240.0,    # optional
 }
 ```
 

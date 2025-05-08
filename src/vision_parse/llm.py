@@ -51,21 +51,19 @@ class LLM:
     def __init__(
         self,
         model_name: str,
-        api_key: Optional[str],
-        temperature: float,
-        top_p: float,
-        openai_config: Optional[Dict],
-        gemini_config: Optional[Dict],
-        image_mode: Literal["url", "base64", None],
-        custom_prompt: Optional[str],
-        detailed_extraction: bool,
-        enable_concurrency: bool,
+        api_key: Optional[str] = None,
+        temperature: float = 0.7,
+        top_p: float = 0.7,
+        provider_config: Optional[Dict] = None,
+        image_mode: Literal["url", "base64", None] = None,
+        custom_prompt: Optional[str] = None,
+        detailed_extraction: bool = False,
+        enable_concurrency: bool = False,
         **kwargs: Any,
     ):
         self.model_name = model_name
         self.api_key = api_key
-        self.openai_config = openai_config or {}
-        self.gemini_config = gemini_config or {}
+        self.provider_config = provider_config or {}
         self.temperature = temperature
         self.top_p = top_p
         self.image_mode = image_mode
@@ -129,66 +127,17 @@ class LLM:
         Returns:
             Dict[str, Any]: Dictionary containing model parameters for API calls.
         """
-        # Base parameters that are common across providers
+
+        # Base parameters common across providers
         params = {
             "model": self.model_name,
             "temperature": 0.0 if structured else self.temperature,
             "top_p": 0.4 if structured else self.top_p,
+            **self.kwargs,
         }
 
-        # Filter kwargs based on provider
-        if self.provider in ["openai", "azure"]:
-            # Only include OpenAI-compatible parameters
-            openai_params = {
-                k: v
-                for k, v in self.kwargs.items()
-                if k not in ["device", "num_workers", "ollama_config"]
-            }
-            params.update(openai_params)
-
-            if self.openai_config.get("AZURE_OPENAI_API_KEY"):
-                params.update(
-                    {
-                        "api_key": self.openai_config["AZURE_OPENAI_API_KEY"],
-                        "api_base": self.openai_config["AZURE_ENDPOINT_URL"],
-                        "api_version": self.openai_config.get(
-                            "AZURE_OPENAI_API_VERSION", "2024-08-01-preview"
-                        ),
-                        "deployment_id": self.openai_config.get(
-                            "AZURE_DEPLOYMENT_NAME"
-                        ),
-                    }
-                )
-            else:
-                params.update(
-                    {
-                        "api_key": self.api_key,
-                        "base_url": self.openai_config.get("OPENAI_BASE_URL"),
-                        "max_retries": self.openai_config.get("OPENAI_MAX_RETRIES", 3),
-                        "timeout": self.openai_config.get("OPENAI_TIMEOUT", 240.0),
-                    }
-                )
-        elif self.provider == "gemini":
-            # Only include Gemini-compatible parameters
-            gemini_params = {
-                k: v
-                for k, v in self.kwargs.items()
-                if k not in ["device", "num_workers", "ollama_config"]
-            }
-            params.update(gemini_params)
-            params.update(
-                {
-                    "api_key": self.api_key,
-                    **self.gemini_config,
-                }
-            )
-        elif self.provider == "deepseek":
-            # Handle DeepSeek parameters
-            params.update(
-                {
-                    "api_key": self.api_key,
-                }
-            )
+        # Add API key and provider-specific config
+        params.update({"api_key": self.api_key, **self.provider_config})
 
         return params
 
@@ -214,6 +163,7 @@ class LLM:
         Raises:
             LLMError: If LLM processing fails.
         """
+
         try:
             messages = [
                 {
@@ -232,26 +182,46 @@ class LLM:
 
             params = self._get_model_params(structured)
 
-            if structured:
-                response = await self.client.chat.completions.create(
-                    messages=messages,
-                    response_model=ImageDescription,
-                    **params,
-                )
-                return response.model_dump_json()
+            if self.enable_concurrency:
+                # Async path
+                if structured:
+                    response = await self.client.chat.completions.create(
+                        messages=messages,
+                        response_model=ImageDescription,
+                        **params,
+                    )
+                    return response.model_dump_json()
+                else:
+                    # For non-structured responses, use str as the response model
+                    response = await self.client.chat.completions.create(
+                        messages=messages,
+                        response_model=str,
+                        **params,
+                    )
             else:
-                # For non-structured responses, use str as the response model
-                response = await self.client.chat.completions.create(
-                    messages=messages,
-                    response_model=str,
-                    **params,
-                )
-                return re.sub(
-                    r"```(?:markdown)?\n(.*?)\n```",
-                    r"\1",
-                    response,
-                    flags=re.DOTALL,
-                )
+                # Sync path
+                if structured:
+                    response = self.client.chat.completions.create(
+                        messages=messages,
+                        response_model=ImageDescription,
+                        **params,
+                    )
+                    return response.model_dump_json()
+                else:
+                    # For non-structured responses, use str as the response model
+                    response = self.client.chat.completions.create(
+                        messages=messages,
+                        response_model=str,
+                        **params,
+                    )
+
+            # Process the response for non-structured output
+            return re.sub(
+                r"```(?:markdown)?\n(.*?)\n```",
+                r"\1",
+                response,
+                flags=re.DOTALL,
+            )
         except Exception as e:
             raise LLMError(f"LLM processing failed: {str(e)}")
 
