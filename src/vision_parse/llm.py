@@ -182,6 +182,13 @@ class LLM:
                     **self.gemini_config,
                 }
             )
+        elif self.provider == "deepseek":
+            # Handle DeepSeek parameters
+            params.update(
+                {
+                    "api_key": self.api_key,
+                }
+            )
 
         return params
 

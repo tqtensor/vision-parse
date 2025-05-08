@@ -118,7 +118,7 @@ parser = VisionParser(
 
 # Initialize parser with DeepSeek model
 parser = VisionParser(
-    model_name="deepseek-chat",
+    model_name="deepseek/deepseek-chat",
     api_key="your-deepseek-api-key", # get the DeepSeek API key from https://platform.deepseek.com/api_keys
     temperature=0.7,
     top_p=0.4,
@@ -132,14 +132,14 @@ parser = VisionParser(
 
 The following Vision LLM models have been thoroughly tested with Vision Parse, but thanks to our [LiteLLM](https://github.com/BerriAI/litellm) integration, you can experiment with other vision-capable models as well:
 
-|    **Model Name**    | **Provider Name** |
-| :------------------: | :---------------: |
-|        gpt-4o        |      OpenAI       |
-|     gpt-4o-mini      |      OpenAI       |
-|   gemini-1.5-flash   | Google AI Studio  |
-| gemini-2.0-flash-exp | Google AI Studio  |
-|    gemini-1.5-pro    | Google AI Studio  |
-|    deepseek-chat     |     DeepSeek      |
+|  **Model Name**  | **Provider Name** |
+| :--------------: | :---------------: |
+|      gpt-4o      |      OpenAI       |
+|   gpt-4o-mini    |      OpenAI       |
+|     gpt-4.1      |      OpenAI       |
+|  gemini-1.5-pro  | Google AI Studio  |
+| gemini-2.0-flash | Google AI Studio  |
+|  deepseek-chat   |     DeepSeek      |
 
 > [!TIP]
 > To use other vision-capable models, simply pass the appropriate model identifier as supported by LiteLLM. For a complete list of supported providers and models, check the [LiteLLM documentation](https://docs.litellm.ai/docs/providers).
